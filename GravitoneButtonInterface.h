@@ -1,0 +1,75 @@
+#ifndef GRAVITONE_BUTTON_INTERFACE
+#define GRAVITONE_BUTTON_INTERFACE
+
+#include <Wire.h>
+#include <Adafruit_MCP23017.h>
+
+#include "Gravitone.h"
+
+// BUTTON CONNECTIONS w.r.t. TO MCP23017
+enum GravitoneButton {
+    GPIN_A0,
+    GPIN_A1,
+    GPIN_A2,
+    GPIN_A3,
+    GPIN_A4,
+    GPIN_A5,
+    GPIN_A6,
+    GPIN_A7,
+    GPIN_B0,
+    GPIN_B1,
+    GPIN_B2,
+    GPIN_B3
+};
+
+
+struct GravitoneButtonEvent {
+    int id;
+    int value;
+};
+
+
+enum GravitoneButtonEventType {
+    EVENT_MENU,
+    EVENT_KEYBOARD
+};
+
+
+enum GravitoneButtonMenuEvent {
+    MENU_PREV,
+    MENU_SELECT,
+    MENU_NEXT,
+    MENU_BACK
+};
+
+
+enum GravitoneButtonKeyboardEvent {
+    GKEY_F1,
+    GKEY_F2,
+    GKEY_F3,
+    GKEY_F4,
+    GKEY_F5,
+    GKEY_F6,
+    GKEY_F7,
+    GKEY_F8,
+    GKEY_F9,
+    GKEY_F10,
+    GKEY_F11
+};
+
+class GravitoneButtonInterface {
+
+public:
+    // constructor that takes a function pointer for callback to notify when
+    // a button press occurs
+    GravitoneButtonInterface() {};
+
+    void begin();
+    void processInterrupt();
+    void setCallback(void (*callback)(GravitoneButtonEvent));
+    
+    Adafruit_MCP23017 mcp;
+    void (*buttonEventCallback)(GravitoneButtonEvent);
+};
+
+#endif
