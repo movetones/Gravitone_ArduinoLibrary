@@ -1,7 +1,7 @@
 #include <Wire.h>
-#include <GravitoneDriver.h>
+#include <GravitoneButtonDriver.h>
 
-GravitoneDriver driver = GravitoneDriver::driver;
+GravitoneButtonDriver driver = GravitoneButtonDriver::driver;
 
 volatile int newEvent = -1;
 
@@ -9,7 +9,7 @@ void setup() {
 
 
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
 
     delay(2000);
   Serial.println("GravitoneButtonInterface Test");

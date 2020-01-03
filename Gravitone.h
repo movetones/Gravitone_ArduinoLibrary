@@ -15,7 +15,6 @@
 #define ICM20948_INT	13 // ICM -> ARDUINO
 #define ICM20948_SYNC	14 // ARDUINO -> ICM
 
-
 class Gravitone {
 
 };

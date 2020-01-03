@@ -1,10 +1,12 @@
 #ifndef GRAVITONE_BUTTON_INTERFACE
 #define GRAVITONE_BUTTON_INTERFACE
 
-#include <Wire.h>
 #include <Adafruit_MCP23017.h>
 
-#include "Gravitone.h"
+// PIN DEFINITIONS FOR GRAVITONE V1.5 PCB
+// CONNECTED TO A TEENSY 3.2
+#define MCP23017_INTA	8  // MCP -> ARDUINO
+#define MCP23017_INTB	7  // MCP -> ARDUINO
 
 // BUTTON CONNECTIONS w.r.t. TO MCP23017
 enum GravitoneButton {
@@ -67,7 +69,7 @@ public:
     void begin();
     void processInterrupt();
     void setCallback(void (*callback)(GravitoneButtonEvent));
-    
+
     Adafruit_MCP23017 mcp;
     void (*buttonEventCallback)(GravitoneButtonEvent);
 };

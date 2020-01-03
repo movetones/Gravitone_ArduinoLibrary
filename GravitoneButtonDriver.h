@@ -1,21 +1,16 @@
-#ifndef GRAVITONE_DRIVER
-#define GRAVITONE_DRIVER
+#ifndef GRAVITONE_BUTTON_DRIVER
+#define GRAVITONE_BUTTON_DRIVER
 
 #include "GravitoneButtonInterface.h"
-#include "GravitoneDisplayInterface.h"
 
 static GravitoneButtonInterface buttons;
-static GravitoneDisplayInterface display;
 
-class GravitoneDriver {
+class GravitoneButtonDriver {
     
 public:
-    GravitoneDriver(){}
+    GravitoneButtonDriver(){}
     
     void begin(void (*callback)(GravitoneButtonEvent)) { 
-        //Serial.println("Starting display");
-        display.begin();
-        
         //Serial.println("Starting buttons");  
         buttons.begin();
         attachInterrupt(digitalPinToInterrupt(MCP23017_INTA), buttonISR, FALLING); 
@@ -32,7 +27,7 @@ public:
         //attachInterrupt(digitalPinToInterrupt(MCP23017_INTB), buttonISR, FALLING);
     }
     
-    static GravitoneDriver driver;
+    static GravitoneButtonDriver driver;
 };
 
 #endif
