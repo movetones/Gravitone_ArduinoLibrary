@@ -21,5 +21,6 @@
 #include "util/battery.h"
 #include "util/scale.h"
 #include "util/chords.h"
+#include "GravitoneButtonInterface.h"
 
 #endif
