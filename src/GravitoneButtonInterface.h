@@ -62,16 +62,18 @@ enum GravitoneButtonKeyboardEvent {
 class GravitoneButtonInterface {
 
 public:
-    // constructor that takes a function pointer for callback to notify when
-    // a button press occurs
-    GravitoneButtonInterface() {};
+    GravitoneButtonInterface(void (*handler)(int, bool)) : eventHandler(handler) {};
 
     void begin();
-    void processInterrupt();
-    void setCallback(void (*callback)(GravitoneButtonEvent));
+    bool available();
+    bool* changed();
+    void update();
 
+    void (*eventHandler)(int, bool);
+    bool statesChanged[12];
+    GravitoneButtonEvent states[12];
+    
     Adafruit_MCP23017 mcp;
-    void (*buttonEventCallback)(GravitoneButtonEvent);
 };
 
 #endif
