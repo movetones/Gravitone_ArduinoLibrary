@@ -101,13 +101,15 @@ void GravitoneButtonInterface::update()
         // READ ITH BUTTON VALUE AND INVERT FOR NEG LOGIC
         iVal = !((curPinVals & (1 << i)) > 0);
         
-        // ONLY CALL EVENT HANDLER IF CURRENT STATE DIFFERS FROM PREV STATE
+        // SET STATE CHANGED BOOLEAN
         if( iVal != states[i].value ){
             statesChanged[i] = true;
-            states[i].value = iVal;
-            eventHandler(i, iVal);
         } else {
             statesChanged[i] = false;
         }
+        
+        // STORE CURRENT VALUE AND CALL EVENT HANDLER
+        states[i].value = iVal;
+        eventHandler(i, iVal);
     }
 }
