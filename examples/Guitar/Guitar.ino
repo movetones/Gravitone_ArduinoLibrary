@@ -4,666 +4,79 @@
 
 #include <Audio.h>
 #include <Gravitone.h>
-//#include <ICM_20948.h>
-//#include "ICM20948.h"
-
-
-#define ODR_PERIOD 10
-
-// new icm code
-#include <ICM20948/Icm20948.h>
-#include <ICM20948/SensorTypes.h>
-#include <ICM20948/Icm20948MPUFifoControl.h>
-// end new icm code
-
+#include <ICM_20948.h>
 #include <Adafruit_GFX.h>
 #include <MadgwickAHRS.h>
 #include <Adafruit_SSD1306.h>
 
-
-//#define INT_PIN ICM20948_INT
-
-////////////////////////////
-///////////////////////////
-/// icm stuff to eventually go into a header
-#define AK0991x_DEFAULT_I2C_ADDR  0x0C  /* The default I2C address for AK0991x Magnetometers */
-#define AK0991x_SECONDARY_I2C_ADDR  0x0E  /* The secondary I2C address for AK0991x Magnetometers */
-
-#define ICM_I2C_ADDR_REVA      0x68  /* I2C slave address for INV device on Rev A board */
-#define ICM_I2C_ADDR_REVB     0x69  /* I2C slave address for INV device on Rev B board */
-
-#define AD0_VAL   0     // The value of the last bit of the I2C address.
-
-
-uint8_t I2C_Address = 0x68;
-
-char eamessage[1024];
-
-static const uint8_t dmp3_image[] = 
-{
-#include <ICM20948/icm20948_img.dmp3a.h>
-};
-
-
-inv_icm20948_t icm_device;
-
-int rc = 0;
-#define THREE_AXES 3
-static int unscaled_bias[THREE_AXES * 2];
-
-/* FSR configurations */
-int32_t cfg_acc_fsr = 4; // Default = +/- 4g. Valid ranges: 2, 4, 8, 16
-int32_t cfg_gyr_fsr = 2000; // Default = +/- 2000dps. Valid ranges: 250, 500, 1000, 2000
-
-/*
-* Mounting matrix configuration applied for Accel, Gyro and Mag
-*/
-
-static const float cfg_mounting_matrix[9] = {
-  1.f, 0, 0,
-  0, -1.f, 0,
-  0, 0, 1.f
-};
-
-
-static uint8_t convert_to_generic_ids[INV_ICM20948_SENSOR_MAX] = {
-  INV_SENSOR_TYPE_ACCELEROMETER,
-  INV_SENSOR_TYPE_GYROSCOPE,
-  INV_SENSOR_TYPE_RAW_ACCELEROMETER,
-  INV_SENSOR_TYPE_RAW_GYROSCOPE,
-  INV_SENSOR_TYPE_UNCAL_MAGNETOMETER,
-  INV_SENSOR_TYPE_UNCAL_GYROSCOPE,
-  INV_SENSOR_TYPE_BAC,
-  INV_SENSOR_TYPE_STEP_DETECTOR,
-  INV_SENSOR_TYPE_STEP_COUNTER,
-  INV_SENSOR_TYPE_GAME_ROTATION_VECTOR,
-  INV_SENSOR_TYPE_ROTATION_VECTOR,
-  INV_SENSOR_TYPE_GEOMAG_ROTATION_VECTOR,
-  INV_SENSOR_TYPE_MAGNETOMETER,
-  INV_SENSOR_TYPE_SMD,
-  INV_SENSOR_TYPE_PICK_UP_GESTURE,
-  INV_SENSOR_TYPE_TILT_DETECTOR,
-  INV_SENSOR_TYPE_GRAVITY,
-  INV_SENSOR_TYPE_LINEAR_ACCELERATION,
-  INV_SENSOR_TYPE_ORIENTATION,
-  INV_SENSOR_TYPE_B2S
-};
-///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-
-
-
-
+#define AD0_VAL 0
 
 // GRAVITONE BUTTON INTERFACE
 GravitoneButtonInterface buttons(doButtonAction);
 
-// I2C DISPLAY DRIVER
-//U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
-
 #define SERIAL_PORT Serial
 #define WIRE_PORT Wire
 
-
-//ICM20948 myICM;
-//ICM_20948_I2C myICM;
-//Madgwick filter;
+ICM_20948_I2C myICM;
+Madgwick filter;
 
 Adafruit_SSD1306 display(-1);
 #if (SSD1306_LCDHEIGHT != 32)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
-// Some vars to control or respond to interrupts
-volatile bool isrFired = false;
-volatile bool sensorSleep = false;
-volatile bool canToggle = false;
 
 
 gs_Scale *scale;
 uint8_t scaleIndex = 0;
 uint8_t scaleTypeIndex = 5;
 
-unsigned long lastUpdate = 0, lastDispUpdate = 0, lastBatUpdate = 0, hapticTimeout = 0, lastButtonUpdate = 0, lastIMUUpdate = 0, lastNoteUpdate = 0;
+unsigned long lastUpdate = 0, lastDispUpdate = 0, lastBatUpdate = 0, lastButtonUpdate = 0, lastIMUUpdate = 0, lastNoteUpdate = 0;
 float ax, ay, az, gx, gy, gz, mx, my, mz;
 float roll, pitch, heading;
 float freq = 0;
 float batVoltage = 0;
-volatile bool hapticTrigger = false;
-
-
-
-
-// detection buffers - 1 seconds worth of data @ 100HZ ODR
-//CircularBuffer<float, 100> axBuf;
-//CircularBuffer<float, 100> ayBuf;
-//CircularBuffer<float, 100> azBuf;
-//CircularBuffer<float, 100> gxBuf;
-//CircularBuffer<float, 100> gyBuf;
-//CircularBuffer<float, 100> gzBuf;
-
 
 uint8_t bat_icon_state = 0;
 int sus = 0;
 int note = 0;
 bool playing = false;
 
+
 // GUItool: begin automatically generated code
-AudioSynthWaveformSine   sine1;          //xy=493,244
-AudioAmplifier           amp1;           //xy=668,247
-AudioEffectFade          fade1;          //xy=842,248
-AudioOutputI2S           i2s1;           //xy=1048,244
-AudioConnection          patchCord11(sine1, amp1);
-AudioConnection          patchCord12(amp1, fade1);
-//AudioConnection          patchCord3(fade1, 0, i2s1, 0);
-//AudioConnection          patchCord4(fade1, 0, i2s1, 1);
+AudioSynthWaveformSine   sine1;          //xy=162,625
+AudioSynthKarplusStrong  string3;        //xy=170,390
+AudioSynthKarplusStrong  string4;        //xy=170,451
+AudioSynthKarplusStrong  string2;        //xy=177,326
+AudioSynthKarplusStrong  string1;        //xy=179,261
+AudioAmplifier           amp1;           //xy=339,625
+AudioSynthKarplusStrong  string6;        //xy=466,514
+AudioMixer4              mixer1;         //xy=480,356
+AudioSynthKarplusStrong  string5;        //xy=480,449
+AudioEffectFade          fade1;          //xy=504,624
+AudioMixer4              mixer2;         //xy=738,378
+AudioOutputI2S           i2s1;           //xy=1006,379
+AudioConnection          patchCord1(sine1, amp1);
+AudioConnection          patchCord2(string3, 0, mixer1, 2);
+AudioConnection          patchCord3(string4, 0, mixer1, 3);
+AudioConnection          patchCord4(string2, 0, mixer1, 1);
+AudioConnection          patchCord5(string1, 0, mixer1, 0);
+AudioConnection          patchCord6(amp1, fade1);
+AudioConnection          patchCord7(string6, 0, mixer2, 2);
+AudioConnection          patchCord8(mixer1, 0, mixer2, 0);
+AudioConnection          patchCord9(string5, 0, mixer2, 1);
+AudioConnection          patchCord10(fade1, 0, mixer2, 3);
+AudioConnection          patchCord11(mixer2, 0, i2s1, 0);
+AudioConnection          patchCord12(mixer2, 0, i2s1, 1);
 // GUItool: end automatically generated code
 
-
-AudioSynthKarplusStrong  string1;
-AudioSynthKarplusStrong  string2;
-AudioSynthKarplusStrong  string3;
-AudioSynthKarplusStrong  string4;
-AudioSynthKarplusStrong  string5;
-AudioSynthKarplusStrong  string6;
-AudioMixer4              mixer1;
-AudioMixer4              mixer2;
-//AudioOutputI2S           i2s1;
-AudioConnection          patchCord1(string1, 0, mixer1, 0);
-AudioConnection          patchCord2(string2, 0, mixer1, 1);
-AudioConnection          patchCord3(string3, 0, mixer1, 2);
-AudioConnection          patchCord4(string4, 0, mixer1, 3);
-AudioConnection          patchCord5(mixer1, 0, mixer2, 0);
-AudioConnection          patchCord6(string5, 0, mixer2, 1);
-AudioConnection          patchCord7(string6, 0, mixer2, 2);
-
-AudioConnection          patchCord10(fade1, 0, mixer2, 3);
-
-AudioConnection          patchCord8(mixer2, 0, i2s1, 0);
-AudioConnection          patchCord9(mixer2, 0, i2s1, 1);
 
 const int finger_delay = 5;
 const int hand_delay = 220;
 
 int chordnum=0;
 
-
-
 int batCounter = 0;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// new icm functions
-
-/*
-* Sleep implementation for ICM20948
-*/
-void inv_icm20948_sleep(int ms)
-{
-  delay(ms);
-}
-
-void inv_icm20948_sleep_us(int us)
-{
-  delayMicroseconds(us);
-}
-
-
-
-int i2c_master_write_register(uint8_t address, uint8_t reg, uint32_t len, const uint8_t *data)
-{
-//  if (address != 0x69)
-//  {
-//
-//    Serial.print("Odd address:");
-//    Serial.println(address);
-//  }
-  //Serial.print("write address ");
-  //Serial.println(address);
-  //Serial.print("register ");
-  //Serial.println(reg);
-  //Serial.print("length = ");
-  //Serial.println(len);
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write(data, len);
-  Wire.endTransmission();
-  return 0;
-}
-
-int i2c_master_read_register(uint8_t address, uint8_t reg, uint32_t len, uint8_t *buff)
-{
-//  if (address != 0x69)
-//  {
-//
-//    Serial.print("Odd read address:");
-//    Serial.println(address);
-//  }
-  //Serial.print("read address ");
-  //Serial.println(address);
-  //Serial.print("register ");
-  //Serial.println(reg);
-  //Serial.print("length = ");
-  //Serial.println(len);
-
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.endTransmission(false); // Send repeated start
-
-  uint32_t offset = 0;
-  uint32_t num_received = Wire.requestFrom(address, len);
-  //Serial.print("received = ");
-  //Serial.println(num_received);
-  //Serial.println(buff[0]);
-  if (num_received == len)
-  {
-    for (uint8_t i = 0; i < len; i++)
-    {
-      buff[i] = Wire.read();
-    }
-    return 0;
-  }
-  else
-  {
-    return -1;
-  }
-}
-
-
-
-//---------------------------------------------------------------------
-int idd_io_hal_read_reg(void *context, uint8_t reg, uint8_t *rbuffer, uint32_t rlen)
-{
-  return i2c_master_read_register(I2C_Address, reg, rlen, rbuffer);
-}
-
-//---------------------------------------------------------------------
-
-int idd_io_hal_write_reg(void *context, uint8_t reg, const uint8_t *wbuffer, uint32_t wlen)
-{
-  return i2c_master_write_register(I2C_Address, reg, wlen, wbuffer);
-}
-
-//---------------------------------------------------------------------
-inv_bool_t interface_is_SPI(void)
-{
-  return false;
-}
-
-
-
-//---------------------------------------------------------------------
-static void icm20948_apply_mounting_matrix(void)
-{
-  int ii;
-  for (ii = 0; ii < INV_ICM20948_SENSOR_MAX; ii++)
-  {
-//    if( ii == INV_SENSOR_TYPE_ACCELEROMETER || ii == INV_SENSOR_TYPE_RAW_ACCELEROMETER )
-//      inv_icm20948_set_matrix(&icm_device, acc_cfg_mounting_matrix, (inv_icm20948_sensor)ii);
-//      
-//    else if( ii == INV_SENSOR_TYPE_GYROSCOPE || ii == INV_SENSOR_TYPE_RAW_GYROSCOPE )
-//      inv_icm20948_set_matrix(&icm_device, gyr_cfg_mounting_matrix, (inv_icm20948_sensor)ii);
-//      
-//    else if( ii == INV_SENSOR_TYPE_MAGNETOMETER  || ii == INV_SENSOR_TYPE_UNCAL_MAGNETOMETER )
-//      inv_icm20948_set_matrix(&icm_device, mag_cfg_mounting_matrix, (inv_icm20948_sensor)ii);
-//      
-//    else
-      inv_icm20948_set_matrix(&icm_device, cfg_mounting_matrix, (inv_icm20948_sensor)ii);
-  }
-}
-
-//---------------------------------------------------------------------
-
-static void icm20948_set_fsr(void)
-{
-  inv_icm20948_set_fsr(&icm_device, INV_ICM20948_SENSOR_RAW_ACCELEROMETER, (const void *)&cfg_acc_fsr);
-  inv_icm20948_set_fsr(&icm_device, INV_ICM20948_SENSOR_ACCELEROMETER, (const void *)&cfg_acc_fsr);
-  inv_icm20948_set_fsr(&icm_device, INV_ICM20948_SENSOR_RAW_GYROSCOPE, (const void *)&cfg_gyr_fsr);
-  inv_icm20948_set_fsr(&icm_device, INV_ICM20948_SENSOR_GYROSCOPE, (const void *)&cfg_gyr_fsr);
-  inv_icm20948_set_fsr(&icm_device, INV_ICM20948_SENSOR_GYROSCOPE_UNCALIBRATED, (const void *)&cfg_gyr_fsr);
-}
-
-
-//--------------------------------------------------------------------
-
-
-int icm20948_sensor_setup(void)
-{
-  int rc;
-  uint8_t i, whoami = 0xff;
-
-  /*
-  * Just get the whoami
-  */
-  rc = inv_icm20948_get_whoami(&icm_device, &whoami);
-  Serial.print("whoami = ");
-  Serial.println(whoami);
-
-  //delay(1000);
-
-  /* Setup accel and gyro mounting matrix and associated angle for current board */
-  inv_icm20948_init_matrix(&icm_device);
-
-  Serial.print("dmp image size = ");
-  Serial.println(sizeof(dmp3_image));
-  rc = inv_icm20948_initialize(&icm_device, dmp3_image, sizeof(dmp3_image));
-  if (rc != 0)
-  {
-    rc = inv_icm20948_initialize(&icm_device, dmp3_image, sizeof(dmp3_image));
-    Serial.print("init got ");
-    Serial.println(rc);
-    //  INV_MSG(INV_MSG_LEVEL_ERROR, "Initialization failed. Error loading DMP3...");
-    if( rc != 0 ){ Serial.print("init fail, returning from setup..."); return rc; }
-    else { Serial.print("Success on loading dmp image"); }
-    //return rc;
-
-  }
-
-
-  /* possible compasses in chip
-  *  INV_ICM20948_COMPASS_ID_NONE = 0, 
-   INV_ICM20948_COMPASS_ID_AK09911,  
-   INV_ICM20948_COMPASS_ID_AK09912,  /**< AKM AK09912 
-   INV_ICM20948_COMPASS_ID_AK09916,  /**< AKM AK09916 
-   INV_ICM20948_COMPASS_ID_AK08963,  /**< AKM AK08963 
-  */
-
-  /* Initialize auxiliary sensors */
-  inv_icm20948_register_aux_compass(&icm_device, INV_ICM20948_COMPASS_ID_AK09916, AK0991x_DEFAULT_I2C_ADDR);   //AK0991x_SECONDARY_I2C_ADDR); // AK0991x_DEFAULT_I2C_ADDR);
-
-  rc = inv_icm20948_initialize_auxiliary(&icm_device);
-
-  if (rc != 0)
-  {
-    Serial.print("compass not detected got ");
-    Serial.println(rc);
-  }
-  else
-  {
-
-    Serial.println("compass detected");
-  }
-  icm20948_apply_mounting_matrix();
-
-  icm20948_set_fsr();
-
-  /* re-initialize base state structure */
-  inv_icm20948_init_structure(&icm_device);
-  return 0;
-
-  Serial.println("end of sensor_setup()");
-} //sensor_setup
-
-//---------------------------------------------------------------------
-
-uint64_t inv_icm20948_get_time_us(void)
-{
-  return millis(); //InvEMDFrontEnd_getTimestampUs();
-}
-
-//---------------------------------------------------------------------
-
-static enum inv_icm20948_sensor idd_sensortype_conversion(int sensor)
-{
-  switch (sensor)
-  {
-     case INV_SENSOR_TYPE_RAW_ACCELEROMETER:
-       return INV_ICM20948_SENSOR_RAW_ACCELEROMETER;
-     case INV_SENSOR_TYPE_RAW_GYROSCOPE:
-       return INV_ICM20948_SENSOR_RAW_GYROSCOPE;
-     case INV_SENSOR_TYPE_ACCELEROMETER:
-       return INV_ICM20948_SENSOR_ACCELEROMETER;
-     case INV_SENSOR_TYPE_GYROSCOPE:
-       return INV_ICM20948_SENSOR_GYROSCOPE;
-     case INV_SENSOR_TYPE_UNCAL_MAGNETOMETER:
-       return INV_ICM20948_SENSOR_MAGNETIC_FIELD_UNCALIBRATED;
-     case INV_SENSOR_TYPE_UNCAL_GYROSCOPE:
-       return INV_ICM20948_SENSOR_GYROSCOPE_UNCALIBRATED;
-     case INV_SENSOR_TYPE_BAC:
-       return INV_ICM20948_SENSOR_ACTIVITY_CLASSIFICATON;
-     case INV_SENSOR_TYPE_STEP_DETECTOR:
-       return INV_ICM20948_SENSOR_STEP_DETECTOR;
-     case INV_SENSOR_TYPE_STEP_COUNTER:
-       return INV_ICM20948_SENSOR_STEP_COUNTER;
-     case INV_SENSOR_TYPE_GAME_ROTATION_VECTOR:
-       return INV_ICM20948_SENSOR_GAME_ROTATION_VECTOR;
-     case INV_SENSOR_TYPE_ROTATION_VECTOR:
-       return INV_ICM20948_SENSOR_ROTATION_VECTOR;
-     case INV_SENSOR_TYPE_GEOMAG_ROTATION_VECTOR:
-       return INV_ICM20948_SENSOR_GEOMAGNETIC_ROTATION_VECTOR;
-     case INV_SENSOR_TYPE_MAGNETOMETER:
-       return INV_ICM20948_SENSOR_GEOMAGNETIC_FIELD;
-     case INV_SENSOR_TYPE_SMD:
-       return INV_ICM20948_SENSOR_WAKEUP_SIGNIFICANT_MOTION;
-     case INV_SENSOR_TYPE_PICK_UP_GESTURE:
-       return INV_ICM20948_SENSOR_FLIP_PICKUP;
-     case INV_SENSOR_TYPE_TILT_DETECTOR:
-       return INV_ICM20948_SENSOR_WAKEUP_TILT_DETECTOR;
-     case INV_SENSOR_TYPE_GRAVITY:
-       return INV_ICM20948_SENSOR_GRAVITY;
-     case INV_SENSOR_TYPE_LINEAR_ACCELERATION:
-       return INV_ICM20948_SENSOR_LINEAR_ACCELERATION;
-     case INV_SENSOR_TYPE_ORIENTATION:
-       return INV_ICM20948_SENSOR_ORIENTATION;
-     case INV_SENSOR_TYPE_B2S:
-       return INV_ICM20948_SENSOR_B2S;
-     default:
-       return INV_ICM20948_SENSOR_MAX;
-  }//switch
-}//enum sensortyp_conversion
-
-
-// helper
-void configureICM() {
-  struct inv_icm20948_serif icm20948_serif;
-  icm20948_serif.context   = 0; /* no need */
-  icm20948_serif.read_reg  = idd_io_hal_read_reg;
-  icm20948_serif.write_reg = idd_io_hal_write_reg;
-  icm20948_serif.max_read  = 1024 * 16; /* maximum number of bytes allowed per serial read */
-  icm20948_serif.max_write = 1024 * 16; /* maximum number of bytes allowed per serial write */
-
-  icm20948_serif.is_spi = interface_is_SPI();
-
-  icm_device.base_state.serial_interface = SERIAL_INTERFACE_I2C;
-
-  inv_icm20948_reset_states(&icm_device, &icm20948_serif);
-  inv_icm20948_register_aux_compass(&icm_device, INV_ICM20948_COMPASS_ID_AK09916, AK0991x_DEFAULT_I2C_ADDR);
-
-  rc = icm20948_sensor_setup();
-
-  if (icm_device.selftest_done && !icm_device.offset_done)
-  {
-    // If we've run selftes and not already set the offset.
-    inv_icm20948_set_offset(&icm_device, unscaled_bias);
-    icm_device.offset_done = 1;
-  }
-  //enable sensors
-//  rc = inv_icm20948_enable_sensor(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_GYROSCOPE), 1);
-//  Serial.print("got "); Serial.print(rc); Serial.println(" after enabling gyro.");
-//  rc = inv_icm20948_enable_sensor(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_ACCELEROMETER), 1);
-//  Serial.print("got "); Serial.print(rc); Serial.println(" after enabling acccel.");
-//  //rc = inv_icm20948_enable_sensor(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_GAME_ROTATION_VECTOR), 1);
-//  rc = inv_icm20948_enable_sensor(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_RAW_MAGNETOMETER), 1);
-//  Serial.print("got "); Serial.print(rc); Serial.println(" after enabling mag.");
-  rc = inv_icm20948_enable_sensor(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_ORIENTATION), 1);
-  Serial.print("got "); Serial.print(rc); Serial.println(" after enabling orientation.");
-
-//  rc = inv_icm20948_set_sensor_period(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_GYROSCOPE), ODR_PERIOD); // 10 milliseconds (i hope)
-//  Serial.print("got "); Serial.print(rc); Serial.println(" after setting odr on gyro.");
-//  rc = inv_icm20948_set_sensor_period(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_ACCELEROMETER), ODR_PERIOD);
-//  Serial.print("got "); Serial.print(rc); Serial.println(" after setting odr on accel.");
-//  rc = inv_icm20948_set_sensor_period(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_RAW_MAGNETOMETER), ODR_PERIOD);
-//  Serial.print("got "); Serial.print(rc); Serial.println(" after setting odr on mag.");
-  rc = inv_icm20948_set_sensor_period(&icm_device, idd_sensortype_conversion(INV_SENSOR_TYPE_ORIENTATION), ODR_PERIOD);
-  Serial.print("got "); Serial.print(rc); Serial.println(" after setting odr on orientation.");
-}
-
-
-
-static uint8_t icm20948_get_grv_accuracy(void)
-{
-  uint8_t accel_accuracy;
-  uint8_t gyro_accuracy;
-
-  accel_accuracy = (uint8_t)inv_icm20948_get_accel_accuracy();
-  gyro_accuracy = (uint8_t)inv_icm20948_get_gyro_accuracy();
-  return (min(accel_accuracy, gyro_accuracy));
-}
-void build_sensor_event_data(void *context, enum inv_icm20948_sensor sensortype, uint64_t timestamp, const void *data, const void *arg)
-{
-
-  float raw_bias_data[6];
-  inv_sensor_event_t event;
-  (void)context;
-  uint8_t sensor_id = convert_to_generic_ids[sensortype];
-
-  memset((void *)&event, 0, sizeof(event));
-  event.sensor = sensor_id;
-  event.timestamp = timestamp;
-  switch (sensor_id)
-  {
-//  case INV_SENSOR_TYPE_UNCAL_GYROSCOPE:
-//    memcpy(raw_bias_data, data, sizeof(raw_bias_data));
-//    memcpy(event.data.gyr.vect, &raw_bias_data[0], sizeof(event.data.gyr.vect));
-//    memcpy(event.data.gyr.bias, &raw_bias_data[3], sizeof(event.data.gyr.bias));
-//    memcpy(&(event.data.gyr.accuracy_flag), arg, sizeof(event.data.gyr.accuracy_flag));
-//    Serial.println("UNCAL gyro data");
-//    break;
-//  case INV_SENSOR_TYPE_UNCAL_MAGNETOMETER:
-//    memcpy(raw_bias_data, data, sizeof(raw_bias_data));
-//    memcpy(event.data.mag.vect, &raw_bias_data[0], sizeof(event.data.mag.vect));
-//    memcpy(event.data.mag.bias, &raw_bias_data[3], sizeof(event.data.mag.bias));
-//    memcpy(&(event.data.gyr.accuracy_flag), arg, sizeof(event.data.gyr.accuracy_flag));
-//    Serial.println("Uncalibrated Magnetometer data");
-//    break;
-
-
-
-
-//  case INV_SENSOR_TYPE_GYROSCOPE:
-//    memcpy(event.data.gyr.vect, data, sizeof(event.data.gyr.vect));
-//    memcpy(&(event.data.gyr.accuracy_flag), arg, sizeof(event.data.gyr.accuracy_flag));
-//
-//    if( !gxBuf.available() ) gxBuf.pop(); 
-//    if( !gyBuf.available() ) gyBuf.pop(); 
-//    if( !gzBuf.available() ) gzBuf.pop(); 
-//    
-//    gxBuf.append(event.data.gyr.vect[0]);
-//    gyBuf.append(event.data.gyr.vect[1]);
-//    gzBuf.append(event.data.gyr.vect[2]);
-//
-//    //Serial.println("appended gyro data to buffer");
-//    
-//    sprintf(eamessage, "%i,%f,%f,%f,", timestamp, event.data.gyr.vect[0], event.data.gyr.vect[1], event.data.gyr.vect[2]);
-//    //Serial.print(eamessage);
-//
-//    break;
-
-
-    
-//  case INV_SENSOR_TYPE_GRAVITY:
-//    memcpy(event.data.acc.vect, data, sizeof(event.data.acc.vect));
-//    event.data.acc.accuracy_flag = inv_icm20948_get_accel_accuracy();
-//    Serial.println("Gravity data");
-//    break;
-
-  
-  
-  
-  
-//  case INV_SENSOR_TYPE_LINEAR_ACCELERATION:
-//  case INV_SENSOR_TYPE_ACCELEROMETER:
-//    memcpy(event.data.acc.vect, data, sizeof(event.data.acc.vect));
-//    memcpy(&(event.data.acc.accuracy_flag), arg, sizeof(event.data.acc.accuracy_flag));
-//    sprintf(eamessage, "%f,%f,%f", event.data.acc.vect[0], event.data.acc.vect[1], event.data.acc.vect[2]);
-//    //Serial.println(eamessage);
-//
-//    if( !axBuf.available() ) axBuf.pop(); 
-//    if( !ayBuf.available() ) ayBuf.pop(); 
-//    if( !azBuf.available() ) azBuf.pop(); 
-//    
-//    axBuf.append(event.data.acc.vect[0]);
-//    ayBuf.append(event.data.acc.vect[1]);
-//    azBuf.append(event.data.acc.vect[2]);
-//
-//
-//    //Serial.println("appended accel data to buffer");
-//
-//    break;
-
-
-
-
-
-    
-//  case INV_SENSOR_TYPE_MAGNETOMETER:
-//    memcpy(event.data.mag.vect, data, sizeof(event.data.mag.vect));
-//    memcpy(&(event.data.mag.accuracy_flag), arg, sizeof(event.data.mag.accuracy_flag));
-//    sprintf(eamessage, "Mag: [%f,%f,%f]", event.data.mag.vect[0], event.data.mag.vect[1], event.data.mag.vect[2]);
-//    //Serial.println(eamessage);
-//
-//    break;
-//  case INV_SENSOR_TYPE_GEOMAG_ROTATION_VECTOR:
-//  case INV_SENSOR_TYPE_ROTATION_VECTOR:
-//    memcpy(&(event.data.quaternion.accuracy), arg, sizeof(event.data.quaternion.accuracy));
-//    memcpy(event.data.quaternion.quat, data, sizeof(event.data.quaternion.quat));
-//    Serial.println("rotation vector");
-//    break;
-//  case INV_SENSOR_TYPE_GAME_ROTATION_VECTOR:
-//    memcpy(event.data.quaternion.quat, data, sizeof(event.data.quaternion.quat));
-//    event.data.quaternion.accuracy_flag = icm20948_get_grv_accuracy();
-//    sprintf(eamessage, "Quaternion: (%f,%f,%f,%f)", event.data.quaternion.quat[0], event.data.quaternion.quat[1], event.data.quaternion.quat[2], event.data.quaternion.quat[3]);
-//    //Serial.println(eamessage);
-//    break;
-//  case INV_SENSOR_TYPE_BAC:
-//    memcpy(&(event.data.bac.event), data, sizeof(event.data.bac.event));
-//    Serial.println("BAC data...");
-//    break;
-//  case INV_SENSOR_TYPE_PICK_UP_GESTURE:
-//  case INV_SENSOR_TYPE_TILT_DETECTOR:
-//  case INV_SENSOR_TYPE_STEP_DETECTOR:
-//  case INV_SENSOR_TYPE_SMD:
-//    event.data.event = true;
-//    //Serial.println("tilt/step/smd data");
-//    break;
-//  case INV_SENSOR_TYPE_B2S:
-//    event.data.event = true;
-//    memcpy(&(event.data.b2s.direction), data, sizeof(event.data.b2s.direction));
-//    //Serial.println("B2s data");
-//    break;
-//  case INV_SENSOR_TYPE_STEP_COUNTER:
-//    memcpy(&(event.data.step.count), data, sizeof(event.data.step.count));
-//    Serial.println("Step counter data");
-//    break;
-
-
-  case INV_SENSOR_TYPE_ORIENTATION:
-    //we just want to copy x,y,z from orientation data
-    memcpy(&(event.data.orientation), data, 3 * sizeof(float));
-    //sprintf(eamessage, "Orientation: [%f,%f,%f]", event.data.orientation.x, event.data.orientation.y, event.data.orientation.z);
-    //Serial.println(eamessage); Serial.println(millis());
-    heading = event.data.orientation.x;
-    pitch = event.data.orientation.y;
-    roll = event.data.orientation.z;
-    Serial.println((unsigned long) timestamp);
-    break;
-//  case INV_SENSOR_TYPE_RAW_ACCELEROMETER:
-//  case INV_SENSOR_TYPE_RAW_GYROSCOPE:
-//    memcpy(event.data.raw3d.vect, data, sizeof(event.data.raw3d.vect));
-//    Serial.println("RAW accel/gyro data");
-//    break;
-  default:
-    return;
-  }
-
-  //sensor_event(&event, NULL);
-}
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 void strum_up(const float *chord, float velocity)
 {
@@ -697,32 +110,104 @@ void strum_dn(const float *chord, float velocity)
   //delay(finger_delay);
 }
 
+void configureIMU() {
+  bool initialized = false;
+  while( !initialized ){
+    myICM.begin( WIRE_PORT, AD0_VAL );
+
+    SERIAL_PORT.print( F("Initialization of the sensor returned: ") );
+    SERIAL_PORT.println( myICM.statusString() );
+    if( myICM.status != ICM_20948_Stat_Ok ){
+      SERIAL_PORT.println( "Trying again..." );
+      delay(500);
+    }else{
+      initialized = true;
+    }
+  }
+
+  // In this advanced example we'll cover how to do a more fine-grained setup of your sensor
+  SERIAL_PORT.println("Device connected!");
+
+  // Here we are doing a SW reset to make sure the device starts in a known state
+  myICM.swReset( );
+  if( myICM.status != ICM_20948_Stat_Ok){
+    SERIAL_PORT.print(F("Software Reset returned: "));
+    SERIAL_PORT.println(myICM.statusString());
+  }
+  delay(250);
+  
+  // Now wake the sensor up
+  myICM.sleep( false );
+  myICM.lowPower( false );
+
+  // The next few configuration functions accept a bit-mask of sensors for which the settings should be applied.
+
+  // Set Gyro and Accelerometer to a particular sample mode
+  // options: ICM_20948_Sample_Mode_Continuous
+  //          ICM_20948_Sample_Mode_Cycled
+  myICM.setSampleMode( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr | ICM_20948_Internal_Mag), ICM_20948_Sample_Mode_Continuous ); 
+  if( myICM.status != ICM_20948_Stat_Ok){
+    SERIAL_PORT.print(F("setSampleMode returned: "));
+    SERIAL_PORT.println(myICM.statusString());
+  }
+
+  // Set full scale ranges for both acc and gyr
+  ICM_20948_fss_t myFSS;  // This uses a "Full Scale Settings" structure that can contain values for all configurable sensors
+  
+  myFSS.a = gpm2;         // (ICM_20948_ACCEL_CONFIG_FS_SEL_e)
+                          // gpm2
+                          // gpm4
+                          // gpm8
+                          // gpm16
+                          
+  myFSS.g = dps250;       // (ICM_20948_GYRO_CONFIG_1_FS_SEL_e)
+                          // dps250
+                          // dps500
+                          // dps1000
+                          // dps2000
+                          
+  myICM.setFullScale( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS );  
+  if( myICM.status != ICM_20948_Stat_Ok){
+    SERIAL_PORT.print(F("setFullScale returned: "));
+    SERIAL_PORT.println(myICM.statusString());
+  }
+
+  ICM_20948_smplrt_t imu_fs;
+  imu_fs.g = 24;
+  imu_fs.a = 24;
+
+  ICM_20948_Status_e fsSetStat = myICM.setSampleRate(ICM_20948_Internal_Acc, imu_fs);
+  SERIAL_PORT.print(F("Set sample rate for accel returned: ")); SERIAL_PORT.println(myICM.statusString(fsSetStat));
+  fsSetStat = myICM.setSampleRate(ICM_20948_Internal_Gyr, imu_fs);
+  SERIAL_PORT.print(F("Set sample rate for gyr returned: ")); SERIAL_PORT.println(myICM.statusString(fsSetStat));
+
+
+  SERIAL_PORT.println();
+  SERIAL_PORT.println(F("Configuration complete!")); 
+}
+  
 
 
 
 
-
-
-
-
-
-
-
+/////////////////////////////////////////////////////////////////////////////////////
+// MAIN SETUP FUNCTION
+/////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  delay(500);
+  delay(1000);
   AudioMemory(20);
 
   initGravitonePins();
   ampPower(false);
 
   buttons.begin();
-  //Serial.println("Started buttons");
+  Serial.println("Started buttons");
 
-  //filter.begin(102);
-  //Serial.println("Started filter!");
+  filter.begin(44);
+  Serial.println("Started filter!");
   
   Wire.begin();
   Wire.setClock(400000);
@@ -747,7 +232,7 @@ void setup() {
   initScreen();
 
   
-  Serial.println("configureing imu");
+  Serial.println("configuring imu");
   display.clearDisplay();
   display.setTextSize(0);
   display.setTextColor(WHITE, BLACK);
@@ -755,7 +240,7 @@ void setup() {
   display.setCursor(0, 0);
   display.print("Gravitone Starting :)");
   display.display();
-  configureICM();
+  configureIMU();
 
   display.clearDisplay();
   display.display();
@@ -768,55 +253,73 @@ void setup() {
 }
 
 unsigned long printedLast = 0;
+unsigned long microsPerReading = 1000000/44, microsPrevious=0;
 
 void loop() {
-  if ( millis() - lastButtonUpdate > 15 ) {
+  unsigned long now = millis();
+  
+  if ( now - lastButtonUpdate > 15 ) {
     // This takes care of dispatching button presses to the handler function 
     // we passed in the GravitoneButtonInterface contructor
     buttons.update();
     
-    lastButtonUpdate = millis();   
-  }
-  unsigned long now = millis();
-  if( now - lastIMUUpdate > 10 ){
-    int rv = inv_icm20948_poll_sensor(&icm_device, (void *)0, build_sensor_event_data);
-    lastIMUUpdate = now;
+    lastButtonUpdate = now;
   }
   
-  if( millis() - lastNoteUpdate > 10 ){
-    if( pitch > 0 ){
-      pitch = max(pitch, 90);
-    } else {
-      pitch = 360.0 + pitch;
-      pitch = min(pitch, 270);
-    }
-    note = map(pitch, 270, 90, 0, scale->getNoteCount());
-    freq = scale->getNote(note)->freq;
+  unsigned long microsNow = micros();
+  if (microsNow - microsPrevious >= microsPerReading) {
 
-    // continuous tone
-    //freq = 220*pow(2,(float)(map(roll, 90, -90, 0,24))/12.0);
-
-    sine1.frequency(freq);
-
-    lastNoteUpdate = millis();
-  
-//    // try to detect a strum from gyro data
-//    float mse = 0.0;
-//    for( int idx = 0; idx<gxBuf.size(); idx++ ){
-//      mse += pow(abs(strum_gyro[idx])-abs(gxBuf[idx]), 2);
-//    }
-//
-////    Serial.print(" got mse of ");
-////    Serial.println(mse);
-//
-//    if( mse < 1000000 ){
-//      Serial.println("got a strum!");
-//      //playing = !playing;
-//
-//
+    //if( myICM.dataReady() ){
+      myICM.getAGMT();
+      ax = myICM.accX();
+      ay = myICM.accY();
+      az = myICM.accZ();
+      gx = myICM.gyrX();
+      gy = myICM.gyrY();
+      gz = myICM.gyrZ();
+//      mx = myICM.magX();
+//      my = myICM.magY();
+//      mz = myICM.magZ();
 //      
-//    }
+      //lastIMUUpdate = now;
+    //}
     
+    // update the filter, which computes orientation
+    filter.updateIMU(gx, gy, gz, ax, ay, az);
+
+    // save the heading, pitch and roll
+    roll = filter.getRoll();
+    pitch = filter.getPitch();
+    heading = filter.getYaw();
+
+    // increment previous time, so we keep proper pace
+    microsPrevious = microsPrevious + microsPerReading;
+  }
+  
+  if( now - lastNoteUpdate > 10 ){
+    float mappedRoll;
+    bool ignore = false;
+    if( roll >= -180  && roll <= -90 ){
+      mappedRoll = roll + 180;
+    } else if( roll <= 180 && roll >= 90) {
+      mappedRoll = map(roll, 180, 90, 0, -90);
+    } else {
+      ignore = true;
+      mappedRoll = 0;
+    }
+    if (!ignore) {
+      Serial.println(roll);
+      note = map(mappedRoll, -90, 90, 0, scale->getNoteCount());
+      freq = scale->getNote(note)->freq;
+  
+      // continuous tone
+      //freq = 220*pow(2,(float)(map(roll, 90, -90, 0,24))/12.0);
+  
+      sine1.frequency(freq);
+    } else {
+      sine1.frequency(0);
+    }
+    lastNoteUpdate = now;
   }
 
 
@@ -924,7 +427,6 @@ void doButtonAction(int id, bool val) {
       } else if ( val && s3pressed ) {
         holdCount++;
         if ( holdCount == 12 ) {
-          hapticTrigger = true;
           scaleTypeIndex = (scaleTypeIndex + 1) % GS_NUM_SCALE_PATTERNS;
           regenerateScale(scaleTypeIndex, scaleIndex);
         }
