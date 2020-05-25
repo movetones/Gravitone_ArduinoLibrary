@@ -27,6 +27,10 @@ If you are not already familiar with it, the Teensy Audio library is an amazing 
 Lets look at the audio system design layout for the Guitar example thats included with the Gravitone library.
 <img src='images/guitar_audio_setup.png' width='100%'/>
 
+## Button Mapping
+The Gravitone uses an I2C GPIO expander to access buttons, indexed according to the following diagram.
+<img src='images/gravitone_button_layout.png' width='100%'/>
+
 ## Examples
  Currently there is one example, the Guitar example. This demo project has code for reading the IMU and converting the orientation into notes of a scale, as well as some basic UI features for battery and volume. The 3x3 button pad in this example is mapped to chords. 
 
