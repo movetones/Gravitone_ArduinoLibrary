@@ -66,10 +66,10 @@ const char *gs_NoteNames[] = {
 // SCALE PATTERN NAMES
 #define GS_SCALE_MAJOR_PATTERN_NAME         "Major"
 #define GS_SCALE_MINOR_PATTERN_NAME         "Minor"
-#define GS_SCALE_HARM_MINOR_PATTERN_NAME    "Harmonic Minor"
-#define GS_SCALE_MELO_MINOR_PATTERN_NAME    "Melodic Minor"
-#define GS_SCALE_PENT_MAJOR_PATTERN_NAME    "Pentatonic Major"
-#define GS_SCALE_PENT_MINOR_PATTERN_NAME    "Pentatonic Minor"
+#define GS_SCALE_HARM_MINOR_PATTERN_NAME    "Har. Minor"
+#define GS_SCALE_MELO_MINOR_PATTERN_NAME    "Mel. Minor"
+#define GS_SCALE_PENT_MAJOR_PATTERN_NAME    "Pen. Major"
+#define GS_SCALE_PENT_MINOR_PATTERN_NAME    "Pen. Minor"
 
 static PROGMEM uint16_t gs_scalePatterns[] = {
   GS_SCALE_MAJOR_PATTERN,
@@ -327,10 +327,11 @@ public:
 		}
 	}
   }
+public:
+  GS_NOTE unison;
 private:
   int numOctaves;
   uint16_t scalePattern;
-  GS_NOTE unison;
 };
 
 #endif
