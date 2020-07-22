@@ -16,12 +16,21 @@ enum GravitoneButton {
     GPIN_A3,
     GPIN_A4,
     GPIN_A5,
+<<<<<<< HEAD
     GPIN_A6,
     GPIN_A7,
     GPIN_B0,
     GPIN_B1,
     GPIN_B2,
     GPIN_B3
+=======
+    GPIN_B0,
+    GPIN_A7,
+    GPIN_A6,
+    GPIN_B3,
+    GPIN_B2,
+    GPIN_B1
+>>>>>>> e7f01b1fccd3a8fefd5366dc74d2cb3be7a41dd6
 };
 
 
@@ -72,7 +81,7 @@ public:
     void (*eventHandler)(int, bool);
     bool statesChanged[12];
     GravitoneButtonEvent states[12];
-    
+
     Adafruit_MCP23017 mcp;
 };
 
