@@ -1,6 +1,12 @@
-// Gravitone Example Configuration: With Chords
+// Gravitone Example Configuration:
 // Matt Ruffner 2019
 // MoveTones LLC
+//  This program loads critical libraries for implementing a simple Theremin that maps "roll"
+//  (involves pointing the tip(speaker end) the Gravitone up or down) into a range of pitches.  The buttons have
+//  been configured to various functions and shown graphically at
+//   https://github.com/movetones/Gravitone_ArduinoLibrary#theremin
+
+// Headers files for the required definitions and libraries used 
 
 #include <Audio.h>
 #include <Gravitone.h>
@@ -11,37 +17,41 @@
 
 #define AD0_VAL 0
 
-// GRAVITONE BUTTON INTERFACE
+// GRAVITONE BUTTON INTERFACE SETUP
 GravitoneButtonInterface buttons(doButtonAction);
 
 #define SERIAL_PORT Serial
 #define WIRE_PORT Wire
 
+// Inertial Measurement Unit and Filters to compute roll, pitch, and heading(Yaw) orientations
 ICM_20948_I2C myICM;
 Madgwick filter;
 
+// Interface display unit on Gravitone
 Adafruit_SSD1306 display(-1);
 #if (SSD1306_LCDHEIGHT != 32)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
 
-
+// Function for creating quantized (fretted) gravitone scales
 gs_Scale *scale;
-uint8_t scaleIndex = 0;
-uint8_t scaleTypeIndex = 5;
+uint8_t scaleIndex = 0;  // Index for key of scale (C,D, Eflat ...) 
+uint8_t scaleTypeIndex = 5;  // Scale type minor, major, ... default is pentatonic major
 
 unsigned long lastUpdate = 0, lastDispUpdate = 0, lastBatUpdate = 0, lastButtonUpdate = 0, lastIMUUpdate = 0, lastNoteUpdate = 0;
+// Outputs of IMU 9-axis (accelerometer, gyro, magnetometer)
 float ax, ay, az, gx, gy, gz, mx, my, mz;
+// Gravitone orientions computed from the IMU outputs
 float roll, pitch, heading;
-float freq = 0;
+float freq = 0;  // Fundamental frequency variable for played note
 float batVoltage = 0;
 
 uint8_t bat_icon_state = 0;
 int sus = 0;
-int note = 0;
+int note = 0;   // Index for note in a scale
 bool playing = false;
-
+// Status of default frequency axis continuous (quantized/scale or continuous)
 bool continuous = false;
 
 
@@ -67,7 +77,7 @@ int batCounter = 0;
 int activeWaveform = WAVEFORM_SINE;
 int16_t arbitraryWaveform[256];
 
-
+// Initalize and test IMU
 
 void configureIMU() {
   bool initialized = false;
@@ -147,8 +157,6 @@ void configureIMU() {
   
 
 
-
-
 /////////////////////////////////////////////////////////////////////////////////////
 // MAIN SETUP FUNCTION
 /////////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +181,8 @@ void setup() {
 
   waveform1.begin(0.8, 220, WAVEFORM_SINE);
 
-
+// Set default scale type, key, and number of octaves (last argument)
+//  covered in motion sweep for scale mode 
   scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[scaleIndex], 2);
 
   
@@ -207,6 +216,10 @@ unsigned long microsPerReading = 1000000/44, microsPrevious=0;
 bool recordMotion = false;
 int recordMotionCounter = 0;
 
+// added variable vollevel to template exercise 
+float mappedRoll;
+bool ignore;
+
 void loop() {
   unsigned long now = millis();
   
@@ -229,10 +242,10 @@ void loop() {
     gy = myICM.gyrY();
     gz = myICM.gyrZ();
 
-    // update the filter, which computes orientation
+    // update the filter that computes orientation
     filter.updateIMU(gx, gy, gz, ax, ay, az);
 
-    // save the heading, pitch and roll
+    // extract and save the heading, pitch and roll
     roll = filter.getRoll();
     pitch = filter.getPitch();
     heading = filter.getYaw();
@@ -248,36 +261,45 @@ void loop() {
     // increment previous time, so we keep proper pace
     microsPrevious = microsPrevious + microsPerReading;
   }
-  
+
+  // Remap the roll parameter to correspond to -90 degrees for pointing down, 90
+  // degrees for pointing up, and ignore values (no mapping) outside this range 
   if( now - lastNoteUpdate > 10 ){
-    float mappedRoll;
-    bool ignore = false;
+    ignore = false;
     if( roll >= -180  && roll <= -90 ){
       mappedRoll = roll + 180;
     } else if( roll <= 180 && roll >= 90) {
-      mappedRoll = map(roll, 180, 90, 0, -90);
-    } else {
+      mappedRoll = map(roll, 180, 90, 0,-90);
+    } else  {
       ignore = true;
       mappedRoll = mappedRoll;
     }
+
+    // Note Selection from orientation parameter
     if (!ignore) {
-      //Serial.println(roll);
+         // Scale mode note (must start at 0 – unison frequency)
       note = map(mappedRoll, -90, 90, 0, scale->getNoteCount());
       freq = scale->getNote(note)->freq;
-  
-      // continuous tone
+    
+         // Continuous mode note – can change mapping where output range is number of half steps
+        //  first number can be negative to go below unison frequency
       if( continuous )
-        freq = scale->unison.freq*pow(2,(float)(map(mappedRoll, -90, 90, 0,24))/12.0);
-        
+        freq = scale->unison.freq*pow(2,(float)(map(mappedRoll, -90, 90, 0, 24))/12.0);
+      
+       // Assign frequency to a particular waveform (shape)
       if( activeWaveform == WAVEFORM_ARBITRARY)
-        waveform1.frequency(freq/5);
+      
+      // if arbitrary wave shape is chosen drop 2 octave, just sounds cooler
+        waveform1.frequency(freq/4);
       else 
         waveform1.frequency(freq);
-    } else {
-        //waveform1.frequency(0);
+    }
+  
+    else {
+       //Can put code here to perform an operation in the ignore true case
     }
     lastNoteUpdate = now;
-  }
+  }  // End IMU parameter to sound mapping loop
 
 
   // NOTE DISPLAY UPDATE
@@ -527,7 +549,9 @@ void doButtonAction(int id, bool val) {
 
 void regenerateScale(int  scaleType, int startNote) {
   if ( scale ) {
+    // Remove current scale definitions
     delete scale;
+    // Set to new ones based on input parameters
     scale = new gs_Scale(gs_scalePatterns[scaleType], gs_Notes[startNote], 2);
   }
 }
@@ -546,6 +570,8 @@ void cycleVolume(bool mute) {
   }
 }
 
+//This function changes the amplifier gain setting based on an integer created by a sequence of button
+// presses
 void setVolume(uint8_t vol) {
   if ( vol > 4 ) {
     vol = 0;
