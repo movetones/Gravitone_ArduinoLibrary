@@ -65,6 +65,7 @@ static const unsigned char PROGMEM drawable_16x8_battery_charge[] =
   B11111110, B01111110,
   B11111111, B11111110 };
   
+  
 static const uint8_t* getDrawableForBatteryLevel(uint8_t lvl)
 {
   switch ( lvl ) {
