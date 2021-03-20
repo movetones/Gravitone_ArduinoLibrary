@@ -1,5 +1,5 @@
-// Gravitone Example Configuration: With Chords
-// Matt Ruffner 2019
+// Gravitone Example Configuration: Post-Rotation Theremin, Correct Aeronautical Axes
+// Matt Ruffner 2019, Rev by Chad Parrish Dec 2020
 // MoveTones LLC
 
 #include <Audio.h>
@@ -204,6 +204,8 @@ void setup() {
 unsigned long printedLast = 0;
 unsigned long microsPerReading = 1000000/44, microsPrevious=0;
 
+float tempax, tempgx;
+
 bool recordMotion = false;
 int recordMotionCounter = 0;
 
@@ -229,16 +231,43 @@ void loop() {
     gy = myICM.gyrY();
     gz = myICM.gyrZ();
 
+    // {ax,gx} = {ay,gy}; {ay,gy} = {ax,gx}; {az,gz} = -1*{az,gz};
+
+
+    // Rotation Commands
+    tempax = ax;
+    tempgx = gx;
+
+    ax = ay;
+    gx = gy;
+
+    ay = tempax;
+    gy = tempgx;
+
+    az = -1*az;
+    gz = -1*gz;
+    
+
     // update the filter, which computes orientation
     filter.updateIMU(gx, gy, gz, ax, ay, az);
 
     // save the heading, pitch and roll
     roll = filter.getRoll();
+    
     pitch = filter.getPitch();
+    
     heading = filter.getYaw();
+    
+
+    Serial.print(roll);
+    Serial.print(",");
+    Serial.print(pitch);
+    Serial.print(",");
+    Serial.println(heading);
 
     if( recordMotion  && recordMotionCounter < 256 ){
-      arbitraryWaveform[recordMotionCounter] = (int16_t)(az*(32000.0/2.0));
+      //arbitraryWaveform[recordMotionCounter] = (int16_t)(az*(32000.0/2.0));
+      arbitraryWaveform[recordMotionCounter] = (int16_t)(gy*800);
       recordMotionCounter++;
       if(recordMotionCounter == 256){
         recordMotion = false;
@@ -250,24 +279,46 @@ void loop() {
   }
   
   if( now - lastNoteUpdate > 10 ){
-    float mappedRoll;
+    float mappedPitch;
+    float maxpitch = 70;
+    float minpitch = -70;
     bool ignore = false;
-    if( roll >= -180  && roll <= -90 ){
-      mappedRoll = roll + 180;
-    } else if( roll <= 180 && roll >= 90) {
-      mappedRoll = map(roll, 180, 90, 0, -90);
+
+    if( pitch > maxpitch ){
+      mappedPitch = maxpitch;
+    }
+    else if( pitch < minpitch) {
+      mappedPitch = minpitch;
+    }
+    else if( pitch >= minpitch && pitch <= maxpitch){
+      mappedPitch = pitch;
+    }
+    else{
+      ignore = true;
+      mappedPitch = pitch;
+    }
+
+//    // Print out current mappedPitch value
+//    Serial.println(mappedPitch);
+    
+    /* 
+      if( pitch >= -180  && pitch <= -90 ){
+      mappedPitch = pitch + 180;
+    } else if( pitch <= 180 && pitch >= 90) {
+      mappedPitch = map(pitch, 180, 90, 0, -90);
     } else {
       ignore = true;
-      mappedRoll = mappedRoll;
+      mappedPitch = pitch;
     }
+    */
     if (!ignore) {
       //Serial.println(roll);
-      note = map(mappedRoll, -90, 90, 0, scale->getNoteCount());
+      note = map(mappedPitch, -70, 70, 0, scale->getNoteCount());
       freq = scale->getNote(note)->freq;
   
       // continuous tone
       if( continuous )
-        freq = scale->unison.freq*pow(2,(float)(map(mappedRoll, -90, 90, 0,24))/12.0);
+        freq = scale->unison.freq*pow(2,(float)(map(mappedPitch, -90, 90, 0,24))/12.0);
         
       if( activeWaveform == WAVEFORM_ARBITRARY)
         waveform1.frequency(freq/5);
@@ -505,6 +556,7 @@ void doButtonAction(int id, bool val) {
       if( val && !s11pressed ){
         s11pressed = true;
         recordMotionCounter = 0;
+        memset(arbitraryWaveform, 0, sizeof(arbitraryWaveform));
         display.drawRect(0,22,100,10,WHITE);
         display.fillRect(0,23,100, 8, BLACK);
       } else if( !val && s11pressed ){
