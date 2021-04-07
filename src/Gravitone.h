@@ -57,7 +57,7 @@ private:
   void initButtons();
 
   float yaw, pitch, roll;
-  float ax,ay,az,gx,gy,gz;
+  float ax,ay,az,gx,gy,gz,mx,my,mz;
   unsigned long lastImuRead;
 
   bool buttonStates[12];

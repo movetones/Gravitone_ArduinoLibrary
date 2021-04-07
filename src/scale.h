@@ -149,7 +149,7 @@ public:
   ~gs_NoteSet() { delete notes;}
   GS_NOTE *getNotes(){ if(noteCount) return notes; }
   int getNoteCount() { return noteCount; }
-  void setNoteCount(int ct) { noteCount = ct; notes = new GS_NOTE[noteCount];}
+  void setNoteCount(int ct) { noteCount = ct; if(notes) delete notes; notes = new GS_NOTE[noteCount];}
   String getName() { return name; }
   void setName(String &n) { name = n; }
   GS_NOTE *getNote(int pos);

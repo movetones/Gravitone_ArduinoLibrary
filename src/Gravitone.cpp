@@ -41,7 +41,7 @@ bool Gravitone::begin()
   display.print("Gravitone");
   display.display();
     
-  filter.begin(62.5);
+  filter.begin(102.3);
   
   if( ok ){
     display.print(" OK");
@@ -104,37 +104,60 @@ bool Gravitone::initImu()
       initialized = true;
     }
 
-    // make sure we are not sleeping
-    imuWake();
+   // Here we are doing a SW reset to make sure the device starts in a known state
+  myICM.swReset( );
+  if( myICM.status != ICM_20948_Stat_Ok){
+    initialized = false;
+  }
+  delay(250);
 
-    // Set full scale range struct for both acc and gyr
-    ICM_20948_fss_t myFSS;
-    myFSS.a = gpm4; // set +/-16g sensitivity
-    myFSS.g = dps2000; // set 2000 dps
-    
-    myICM.setFullScale( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS );
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU: failed to set full scale range");
-      initialized = false;
-    }
+  // Now wake the sensor up
+  myICM.sleep( false );
+  myICM.lowPower( false );
 
-    myICM.setSampleMode( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), ICM_20948_Sample_Mode_Cycled ); 
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU: failed to set full scale range");
-      initialized = false;
-    }
-    
-    ICM_20948_smplrt_t mySmplrt;
-    // this is 62.5 hz output data rate for the imu
-    // calculate datarate with 1125 / (1+ODR) in Hz
-    mySmplrt.g = 17;
-    mySmplrt.a = 17;
-    myICM.setSampleRate( ( ICM_20948_Internal_Gyr | ICM_20948_Internal_Acc), mySmplrt );
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU:failed to set sample rate");
-      initialized = false;
-    }
+  // The next few configuration functions accept a bit-mask of sensors for which the settings should be applied.
+//
+//  // Set Gyro and Accelerometer to a particular sample mode
+//  // options: ICM_20948_Sample_Mode_Continuous
+//  //          ICM_20948_Sample_Mode_Cycled
+//  myICM.setSampleMode( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), ICM_20948_Sample_Mode_Continuous );
+//  if( myICM.status != ICM_20948_Stat_Ok){
+//    SERIAL_PORT.print(F("setSampleMode returned: "));
+//    SERIAL_PORT.println(myICM.statusString());
+//  }
 
+  // Set full scale ranges for both acc and gyr
+  ICM_20948_fss_t myFSS;  // This uses a "Full Scale Settings" structure that can contain values for all configurable sensors
+
+  myFSS.a = gpm4;         // (ICM_20948_ACCEL_CONFIG_FS_SEL_e)
+                          // gpm2
+                          // gpm4
+                          // gpm8
+                          // gpm16
+
+  myFSS.g = dps2000;       // (ICM_20948_GYRO_CONFIG_1_FS_SEL_e)
+                          // dps250
+                          // dps500
+                          // dps1000
+                          // dps2000
+
+  myICM.setFullScale( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS );
+  if( myICM.status != ICM_20948_Stat_Ok){
+    initialized = false;
+  }
+
+
+  ICM_20948_smplrt_t mySmplrt;
+  // this is 62.5hz output data rate for the imu
+  // calculate datarate with 1125 / (1+ODR) in Hz
+  mySmplrt.g = 10;
+  mySmplrt.a = 10;
+  myICM.setSampleRate( ( ICM_20948_Internal_Gyr | ICM_20948_Internal_Acc), mySmplrt );
+  if ( myICM.status != ICM_20948_Stat_Ok) {
+    initialized = false;//Serial.println("IMU:failed to set sample rate");
+  }
+
+/*
     myICM.cfgIntActiveLow(true);                      // Active low to be compatible with the breakout board's pullup resistor
     if ( myICM.status != ICM_20948_Stat_Ok) {
       //safePrintln("IMU:failed to set interrupt config");
@@ -155,6 +178,7 @@ bool Gravitone::initImu()
       //safePrintln("IMU:failed to set interrupt config");
       initialized = false;
     }
+    */
   }
   
   return initialized;
@@ -413,17 +437,17 @@ bool Gravitone::updateOrientation()
   if ( myICM.dataReady() ) {
     //Serial.println("here");
     myICM.getAGMT();      // The values are only updated when you call 'getAGMT'
-    myICM.clearInterrupts();
+    //myICM.clearInterrupts();
 
-    ax = myICM.accX();
-    ay = myICM.accY();
-    az = myICM.accZ();
+    ax = myICM.accX()*1000;
+    ay = myICM.accY()*1000;
+    az = myICM.accZ()*1000;
     gx = myICM.gyrX();
     gy = myICM.gyrY();
-    gz = myICM.gyrX();
-    //mx = myICM.magX();
-    //my = myICM.magY();
-    //mz = myICM.magZ();
+    gz = myICM.gyrZ();
+    mx = myICM.magX()*1000;
+    my = myICM.magY()*1000;
+    mz = myICM.magZ()*1000;
 
     gotData = true;
   }
@@ -432,8 +456,10 @@ bool Gravitone::updateOrientation()
       //safePrintln(String(millis()));
       //Serial.println(String(millis()));
       
-        // Rotation Commands
-      float tempax = ax;
+      // Rotation Commands
+      // supposed to compensate for mounting differences to make roll around the narrow
+      // axis but it messes with 
+      /*float tempax = ax;
       float tempgx = gx;
   
       ax = ay;
@@ -443,28 +469,32 @@ bool Gravitone::updateOrientation()
       gy = tempgx;
   
       az = -1*az;
-      gz = -1*gz;
+      gz = -1*gz;*/
 
       // update the filter, which computes orientation
-      filter.updateIMU(gx, gy, gz, ax, ay, az);
+      filter.update(gx, gy, gz, ax, ay, az, mx, my, mz);
 
       // save the heading, pitch and roll
       roll = filter.getRoll();
       pitch = filter.getPitch();
       yaw = filter.getYaw();
-
-      //waveform1.frequency(roll+440);
-      unsigned long n = millis();
-      /*Serial.println(n-lastImuRead);
-        Serial.print("y");
-        Serial.print(yaw);
-        Serial.print("yp");
-        Serial.print(pitch);
-        Serial.print("pr");
-        Serial.print(roll);
-        Serial.println("r");*/
       
-      lastImuRead = n;
+      float r = roll;
+      roll = pitch;
+      
+      if( r > 0 ){
+        if( r >= 90 ){
+          pitch = r - 180;
+        } else {
+          pitch = -1.0 * r;
+        }
+      } else {
+        if( r >= -90 ){
+          pitch = -1.0 * r;
+        } else {
+          pitch = 180 + r;
+        }
+      }
 
     }
     return gotData;
