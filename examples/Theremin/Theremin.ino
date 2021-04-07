@@ -1,6 +1,7 @@
-// Gravitone Example Configuration: Post-Rotation Theremin, Correct Aeronautical Axes
+// Gravitone Example Configuration: Post-Rotation Theremin with Aeronautical-like Axes
 // Matt Ruffner 2019, Rev by Chad Parrish Dec 2020
 // MoveTones LLC
+
 
 #include <Audio.h>
 #include <Gravitone.h>
@@ -25,8 +26,7 @@ Adafruit_SSD1306 display(-1);
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
-
-
+// pointer to various scales, keys and types
 gs_Scale *scale;
 uint8_t scaleIndex = 0;
 uint8_t scaleTypeIndex = 5;
@@ -44,8 +44,6 @@ bool playing = false;
 
 bool continuous = false;
 
-
-#include <Audio.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <SD.h>
@@ -170,16 +168,14 @@ void setup() {
   
   Wire.begin();
   Wire.setClock(400000);
-
+  
+// Set Default scale and waveform
   waveform1.begin(0.8, 220, WAVEFORM_SINE);
-
-
   scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[scaleIndex], 2);
 
-  
+// Set out gravitone display
   Serial.print("initializing display...");
   initScreen();
-
   
   Serial.println("configuring imu");
   display.clearDisplay();
@@ -223,6 +219,7 @@ void loop() {
   unsigned long microsNow = micros();
   if (microsNow - microsPrevious >= microsPerReading) {
 
+// Orientation parameters extracted from IMU
     myICM.getAGMT();
     ax = myICM.accX();
     ay = myICM.accY();
@@ -230,41 +227,32 @@ void loop() {
     gx = myICM.gyrX();
     gy = myICM.gyrY();
     gz = myICM.gyrZ();
-
+// IMU outputs, 6-axis accelerometer and gyroscope
     // {ax,gx} = {ay,gy}; {ay,gy} = {ax,gx}; {az,gz} = -1*{az,gz};
 
 
-    // Rotation Commands
+// Rotation commands to reorient the pitch, roll, and yaw to be
+// more intuitive for the gravitone shape
     tempax = ax;
     tempgx = gx;
-
-    ax = ay;
+    ax = ay;  // Swap x and y
     gx = gy;
-
     ay = tempax;
     gy = tempgx;
-
-    az = -1*az;
+    az = -1*az; // Flip z directions
     gz = -1*gz;
     
 
-    // update the filter, which computes orientation
+// update the filter to compute orientation
     filter.updateIMU(gx, gy, gz, ax, ay, az);
 
-    // save the heading, pitch and roll
+// save the heading, pitch and roll
     roll = filter.getRoll();
     
     pitch = filter.getPitch();
     
     heading = filter.getYaw();
-    
-
-    Serial.print(roll);
-    Serial.print(",");
-    Serial.print(pitch);
-    Serial.print(",");
-    Serial.println(heading);
-
+ 
     if( recordMotion  && recordMotionCounter < 256 ){
       //arbitraryWaveform[recordMotionCounter] = (int16_t)(az*(32000.0/2.0));
       arbitraryWaveform[recordMotionCounter] = (int16_t)(gy*800);
@@ -274,14 +262,17 @@ void loop() {
       }
     }
 
-    // increment previous time, so we keep proper pace
+ // increment previous time, so we keep a pace for refreshing display and sound
     microsPrevious = microsPrevious + microsPerReading;
   }
-  
+
+// Coerce pitch angle for tone conversion to upper and lower limits
   if( now - lastNoteUpdate > 10 ){
-    float mappedPitch;
-    float maxpitch = 70;
-    float minpitch = -70;
+    float mappedPitch, vollevel = .8;
+
+    float maxpitch = 80;
+    float minpitch = -80;
+
     bool ignore = false;
 
     if( pitch > maxpitch ){
@@ -298,34 +289,31 @@ void loop() {
       mappedPitch = pitch;
     }
 
-//    // Print out current mappedPitch value
-//    Serial.println(mappedPitch);
-    
-    /* 
-      if( pitch >= -180  && pitch <= -90 ){
-      mappedPitch = pitch + 180;
-    } else if( pitch <= 180 && pitch >= 90) {
-      mappedPitch = map(pitch, 180, 90, 0, -90);
-    } else {
-      ignore = true;
-      mappedPitch = pitch;
-    }
-    */
+ // If valid angle value, map angle to tone frequency for sound creation 
     if (!ignore) {
-      //Serial.println(roll);
-      note = map(mappedPitch, -70, 70, 0, scale->getNoteCount());
-      freq = scale->getNote(note)->freq;
-  
-      // continuous tone
+    // find index of note in scale, also used in display
+      note = map(mappedPitch, -80, 80, 0, scale->getNoteCount());
+
+      // Assign frequency based on mode (continuous or scale) 
       if( continuous )
-        freq = scale->unison.freq*pow(2,(float)(map(mappedPitch, -90, 90, 0,24))/12.0);
-        
-      if( activeWaveform == WAVEFORM_ARBITRARY)
-        waveform1.frequency(freq/5);
-      else 
+      // Continuous tone mode, assign angle to frequency proportionally
+      freq = scale->unison.freq*pow(2,(float)(map(mappedPitch, -80, 80, 0,24))/12.0);
+      else
+      // Scale tone mode, round angle to nearest frequency in selected scale
+      freq = scale->getNote(note)->freq;
+      
+      // If arbitrary waveform chosen, drop 1 octave to reduce alising of harmonics 
+      if( activeWaveform == WAVEFORM_ARBITRARY) {
+        waveform1.frequency(freq/2);   // drop by an octave (lower frequency)
+        waveform1.amplitude(vollevel);
+      }      else  {       
         waveform1.frequency(freq);
-    } else {
-        //waveform1.frequency(0);
+        waveform1.amplitude(vollevel);    
+    } 
+    }
+    // set to base frequency ( if ignore is true is set )
+    else {
+       waveform1.frequency(0);
     }
     lastNoteUpdate = now;
   }
@@ -418,7 +406,7 @@ void loop() {
 /////////////////////////////////////////////////////////////////
 
 void doButtonAction(int id, bool val) {
-  static bool playPressed = false, playLock = false;
+  static bool playing = false, playLock = false;
   static bool s3pressed = false, s2pressed = false, s4pressed = false, s5pressed = false, s6pressed = false, s7pressed = false, s8pressed = false, s9pressed = false, s10pressed = false;
   static bool s11pressed = false, s12pressed = false;
   static int holdCount = 0;
@@ -428,12 +416,10 @@ void doButtonAction(int id, bool val) {
     /////////////////////////////////////////////////////////////////
     case 2:
       if ( val && !playing  ) {
-        playPressed = true;
         playing = true;
         fade1.fadeIn(20);
       } else if (!val && playing) {
         if( !playLock ){
-          playPressed = false;
           playing = false;
           fade1.fadeOut(100);
         }
@@ -593,16 +579,18 @@ void cycleVolume(bool mute) {
   if ( mute ) {
     setVolume(0);
   } else {
-    vol = (vol + 1) % 5;
+    vol = (vol + 1) % 5;  // Cycling through volume levels with multiple button pushes
     setVolume(vol);
   }
 }
 
+//This function changes the amplifier gain setting
 void setVolume(uint8_t vol) {
   if ( vol > 4 ) {
-    vol = 0;
+    vol = 0;  // Mute
   } else if ( vol > 0 ) {
     ampPower(true);
+    // Set gain of amp based on vol
     switch ( vol ) {
       case 1: 
         amp1.gain(0.2);
