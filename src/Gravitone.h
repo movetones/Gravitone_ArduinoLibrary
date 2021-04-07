@@ -10,8 +10,12 @@
 #include "util/pins.h"
 #include "util/buttons.h"
 
+// use local copy of madgwick that has the correct initial orientation specified
+// this helps the filter stabilize quicker when the IMU is initially oriented the way
+// it is in the gravitone
+#include "MadgwickAHRS.h"
+
 #include <ICM_20948.h>
-#include <MadgwickAHRS.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_MCP23017.h>
