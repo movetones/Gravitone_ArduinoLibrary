@@ -15,12 +15,14 @@
 // it is in the gravitone
 #include "MadgwickAHRS.h"
 
-#include <ICM_20948.h>
+#include "ICM_20948.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_MCP23017.h>
 
-//#define GTONE_USE_DMP 1
+#define QUAT_ANIMATION
+#define GTONE_USE_DMP 
+#define SERIAL_PORT Serial
 
 class Gravitone {
 
