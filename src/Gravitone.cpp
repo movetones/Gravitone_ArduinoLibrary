@@ -9,6 +9,11 @@ ICM_20948_I2C Gravitone::myICM = ICM_20948_I2C();
 Adafruit_MCP23017 Gravitone::mcp = Adafruit_MCP23017();
 Adafruit_SSD1306 Gravitone::display = Adafruit_SSD1306(-1);
 
+
+GravitoneMode::~GravitoneMode() {
+
+}
+
 /********************************************************************************************
  *
  *
@@ -23,35 +28,139 @@ bool Gravitone::begin()
   pinMode(BATTERY_SENSE, INPUT);
   
   // start imu
-  //Serial.println("starting imu...");
+  Serial.println("starting imu...");
   bool ok = initImu();
   //Serial.println("imu initialized");
   
   
-  //Serial.println("starting buttons");
+  Serial.println("starting buttons");
   initButtons();
   //Serial.println("buttons initialized");
   
-  //Serial.println("Srarting screen");
+  Serial.println("Starting screen");
   initScreen();
   //Serial.println("done");
-  
-  display.setTextSize(0);
-  display.setTextColor(WHITE, BLACK);
-  display.setCursor(0, 0);
-  display.print("Gravitone");
-  display.display();
-    
-  filter.begin(102.3);
   
   if( ok ){
     display.print(" OK");
     display.display();
     
     updateBattery();
+  } else {
+    display.print("IMU init failed");
+    display.display();
   }
   
+  imuUpdateInterval = 20;
+  buttonUpdateInterval = 50;
+  displayUpdateInterval = 175;
+  batteryUpdateInterval = 5000;
+  
   return ok;
+}
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+
+void Gravitone::setMode(GravitoneMode *m) {
+  mode = m;
+  mode->start(display);
+}
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+GravitoneMode* Gravitone::getMode() {
+  return mode;
+}
+
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+void Gravitone::eventLoop() {
+  unsigned long now = millis();
+  
+  if ( now - lastDisplayUpdate > displayUpdateInterval ){
+    display.display();
+    lastDisplayUpdate = now;
+  }
+  
+  now = millis();
+  if ( now - lastBatteryUpdate > batteryUpdateInterval ){
+    updateBattery();
+    lastBatteryUpdate = now;
+  }
+  
+//  now = millis();
+//  if ( now - lastImuUpdate > imuUpdateInterval ){
+    if( updateOrientation() ) {
+      mode->onUpdateOrientation(yaw, pitch, roll);
+    }
+//    lastImuUpdate = now;
+//  }
+  
+  now = millis();
+  if ( now - lastButtonUpdate > buttonUpdateInterval ){
+    updateButtons();
+    if( buttonsAvailable() ){
+      int bid = lastButtonPress();
+      
+      if( bid == GB1 ){
+        Serial.print("button 1");
+      }
+      
+      if( bid == GB2 ){
+        Serial.print("button 2");
+        if( getButtonState(bid) == BUTTON_PRESSED ){
+          Serial.println("b2 pressed");
+          cycleVolume(VOL_DOWN);
+        }
+      }
+      
+      if( bid == GB3 ){
+        Serial.print("button 3");
+        if( getButtonState(bid) == BUTTON_PRESSED ){
+          Serial.println("b3 pressed");
+          cycleVolume(VOL_UP);
+        }
+      }
+      
+      if( bid == GB4 ){
+        mode->button4(getButtonState(bid), display);
+      }
+      if( bid == GB5 ){
+        mode->button5(getButtonState(bid), display);
+      }
+      if( bid == GB6 ){
+        mode->button6(getButtonState(bid), display);
+      }
+      if( bid == GB7 ){
+        mode->button7(getButtonState(bid), display);
+      }
+      if( bid == GB8 ){
+        mode->button8(getButtonState(bid), display);
+      }
+      if( bid == GB9 ){
+        mode->button9(getButtonState(bid), display);
+      }
+      if( bid == GB10 ){
+        mode->button10(getButtonState(bid), display);
+      }
+      if( bid == GB11 ){
+        mode->button11(getButtonState(bid), display);
+      }
+      if( bid == GB12 ){
+        mode->button12(getButtonState(bid), display);
+      }
+      
+      lastButtonUpdate = now;
+    }
+  }
 }
 
 /********************************************************************************************
@@ -70,17 +179,64 @@ void Gravitone::updateBattery() {
   } else {
     display.drawBitmap(112, 0,  getDrawableForBatteryLevel(lvl), 16, 8, 1, 0);
   }
-  
-  display.display();
 }
 
 /********************************************************************************************
  *
  *
  *******************************************************************************************/
-void Gravitone::updateVolume(float vol) {
-  display.drawBitmap(102, 0,  getDrawableForVolumeLevel(max(1,min(5,(int)(vol*5)))), 8, 8, 1, 0);
-  display.display();
+void Gravitone::drawVolume() {
+  display.drawBitmap(102, 0,  getDrawableForVolumeLevel(volume), 8, 8, 1, 0);
+}
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+void Gravitone::cycleVolume(int dir) {
+  if ( dir > 0) {
+    if ( volume >= 4 ) return;
+    volume = (volume + 1) % 5;
+  } else if (dir < 0) {
+    if ( volume <= 0 ) return;
+    volume = (volume - 1) % 5;
+  }
+  setVolume();
+}
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+void Gravitone::setVolume() {
+  setVolume(volume);
+}
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+void Gravitone::setVolume(int vol) {
+  if ( vol > 0 ) {
+    setSpeakerState(true);
+    switch ( vol ) {
+      case 1: 
+        mode->amp1.gain(0.2);
+        break;
+      case 2: 
+        mode->amp1.gain(0.5);
+        break;
+      case 3: 
+        mode->amp1.gain(0.7);
+        break;
+      case 4: 
+        mode->amp1.gain(0.9);
+        break;
+    }
+  } else {
+    setSpeakerState(false);
+  }
+  drawVolume();
 }
 
 /********************************************************************************************
@@ -89,102 +245,7 @@ void Gravitone::updateVolume(float vol) {
  *******************************************************************************************/
 bool Gravitone::initImu()
 {
-#ifndef GTONE_USE_DMP
   bool initialized = false;
-  int tries = 0;
-  while ( !initialized && tries < 10) {
-
-    myICM.begin( Wire, 0 ); // i2c coms, address bit=0
-
-    delay(50);
-    if ( myICM.status != ICM_20948_Stat_Ok ) {
-      delay(100); 
-      tries++;  
-      continue;
-    } else {
-      initialized = true;
-    }
-
-   // Here we are doing a SW reset to make sure the device starts in a known state
-  myICM.swReset( );
-  if( myICM.status != ICM_20948_Stat_Ok){
-    initialized = false;
-  }
-  delay(250);
-
-  // Now wake the sensor up
-  myICM.sleep( false );
-  myICM.lowPower( false );
-
-  // The next few configuration functions accept a bit-mask of sensors for which the settings should be applied.
-//
-//  // Set Gyro and Accelerometer to a particular sample mode
-//  // options: ICM_20948_Sample_Mode_Continuous
-//  //          ICM_20948_Sample_Mode_Cycled
-//  myICM.setSampleMode( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), ICM_20948_Sample_Mode_Continuous );
-//  if( myICM.status != ICM_20948_Stat_Ok){
-//    SERIAL_PORT.print(F("setSampleMode returned: "));
-//    SERIAL_PORT.println(myICM.statusString());
-//  }
-
-  // Set full scale ranges for both acc and gyr
-  ICM_20948_fss_t myFSS;  // This uses a "Full Scale Settings" structure that can contain values for all configurable sensors
-
-  myFSS.a = gpm4;         // (ICM_20948_ACCEL_CONFIG_FS_SEL_e)
-                          // gpm2
-                          // gpm4
-                          // gpm8
-                          // gpm16
-
-  myFSS.g = dps2000;       // (ICM_20948_GYRO_CONFIG_1_FS_SEL_e)
-                          // dps250
-                          // dps500
-                          // dps1000
-                          // dps2000
-
-  myICM.setFullScale( (ICM_20948_Internal_Acc | ICM_20948_Internal_Gyr), myFSS );
-  if( myICM.status != ICM_20948_Stat_Ok){
-    initialized = false;
-  }
-
-
-  ICM_20948_smplrt_t mySmplrt;
-  // this is 62.5hz output data rate for the imu
-  // calculate datarate with 1125 / (1+ODR) in Hz
-  mySmplrt.g = 10;
-  mySmplrt.a = 10;
-  myICM.setSampleRate( ( ICM_20948_Internal_Gyr | ICM_20948_Internal_Acc), mySmplrt );
-  if ( myICM.status != ICM_20948_Stat_Ok) {
-    initialized = false;//Serial.println("IMU:failed to set sample rate");
-  }
-
-/*
-    myICM.cfgIntActiveLow(true);                      // Active low to be compatible with the breakout board's pullup resistor
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU:failed to set interrupt config");
-      initialized = false;
-    }
-    myICM.cfgIntOpenDrain(false);                     // Push-pull, though open-drain would also work thanks to the pull-up resistors on the breakout
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU:failed to set interrupt config");
-      initialized = false;
-    }
-    myICM.cfgIntLatch(false);                          // Latch the interrupt until cleared
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU:failed to set interrupt config");
-      initialized = false;
-    }
-    myICM.intEnableRawDataReady(true);                // enable interrupts on raw data ready
-    if ( myICM.status != ICM_20948_Stat_Ok) {
-      //safePrintln("IMU:failed to set interrupt config");
-      initialized = false;
-    }
-    */
-  }
-  
-  return initialized;
-#else
-bool initialized = false;
   int tries = 0;
   while ( !initialized && tries < 10) {
 
@@ -201,7 +262,7 @@ bool initialized = false;
 
     // make sure we are not sleeping
     imuWake();
-    }
+  }
   // The ICM-20948 is awake and ready but hasn't been configured. Let's step through the configuration
   // sequence from InvenSense's _confidential_ Application Note "Programming Sequence for DMP Hardware Functions".
 
@@ -309,7 +370,6 @@ bool initialized = false;
       ; // Do nothing more
   }
   return success;
-  #endif
 }
 
 
@@ -319,79 +379,6 @@ bool initialized = false;
  *******************************************************************************************/
 bool Gravitone::updateOrientation()
 {
-  static long lastUpdate = 0;
-  static long now = 0;
-#ifndef GTONE_USE_DMP
-  
-  bool gotData = false;
-  if ( myICM.dataReady() ) {
-    //Serial.println("here");
-    myICM.getAGMT();      // The values are only updated when you call 'getAGMT'
-    //myICM.clearInterrupts();
-
-    ax = myICM.accX()*1000;
-    ay = myICM.accY()*1000;
-    az = myICM.accZ()*1000;
-    gx = myICM.gyrX();
-    gy = myICM.gyrY();
-    gz = myICM.gyrZ();
-    mx = myICM.magX()*1000;
-    my = myICM.magY()*1000;
-    mz = myICM.magZ()*1000;
-
-    gotData = true;
-  }
-  
-  if ( gotData ) {
-      //safePrintln(String(millis()));
-      //Serial.println(String(millis()));
-      
-      // Rotation Commands
-      // supposed to compensate for mounting differences to make roll around the narrow
-      // axis but it messes with 
-      /*float tempax = ax;
-      float tempgx = gx;
-  
-      ax = ay;
-      gx = gy;
-  
-      ay = tempax;
-      gy = tempgx;
-  
-      az = -1*az;
-      gz = -1*gz;*/
-
-      // update the filter, which computes orientation
-      filter.update(gx, gy, gz, ax, ay, az, mx, my, mz);
-
-      // save the heading, pitch and roll
-      roll = filter.getRoll();
-      pitch = filter.getPitch();
-      yaw = filter.getYaw();
-      
-      float r = roll;
-      roll = pitch;
-      
-      if( r > 0 ){
-        if( r >= 90 ){
-          pitch = r - 180;
-        } else {
-          pitch = -1.0 * r;
-        }
-      } else {
-        if( r >= -90 ){
-          pitch = -1.0 * r;
-        } else {
-          pitch = 180 + r;
-        }
-      }
-
-    }
-    return gotData;
-    
-#else
-  if( millis() - lastUpdate < 10 ) { return false; }
-  lastUpdate = millis();
   icm_20948_DMP_data_t data;
   myICM.readDMPdataFromFIFO(&data);
 
@@ -405,23 +392,14 @@ bool Gravitone::updateOrientation()
 
     if ((data.header & DMP_header_bitmap_Quat6) > 0) 
     {
-      double q1 = ((double)data.Quat6.Data.Q1) / 1073741824.0; // Convert to double. Divide by 2^30
-      double q2 = ((double)data.Quat6.Data.Q2) / 1073741824.0; // Convert to double. Divide by 2^30
-      double q3 = ((double)data.Quat6.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
-
-      /*
-      SERIAL_PORT.print(F("Q1:"));
-      SERIAL_PORT.print(q1, 3);
-      SERIAL_PORT.print(F(" Q2:"));
-      SERIAL_PORT.print(q2, 3);
-      SERIAL_PORT.print(F(" Q3:"));
-      SERIAL_PORT.println(q3, 3);
-*/
+      q1 = ((double)data.Quat6.Data.Q1) / 1073741824.0; // Convert to double. Divide by 2^30
+      q2 = ((double)data.Quat6.Data.Q2) / 1073741824.0; // Convert to double. Divide by 2^30
+      q3 = ((double)data.Quat6.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
 
       // Convert the quaternions to Euler angles (roll, pitch, yaw)
       // https://en.wikipedia.org/w/index.php?title=Conversion_between_quaternions_and_Euler_angles&section=8#Source_code_2
 
-      double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
+      q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
       double q2sqr = q2 * q2;
 
@@ -458,50 +436,13 @@ bool Gravitone::updateOrientation()
       //SERIAL_PORT.printf("Quat9 data is: Q1:%ld Q2:%ld Q3:%ld Accuracy:%d\r\n", data.Quat9.Data.Q1, data.Quat9.Data.Q2, data.Quat9.Data.Q3, data.Quat9.Data.Accuracy);
 
       // Scale to +/- 1
-      double q1 = ((double)data.Quat9.Data.Q1) / 1073741824.0; // Convert to double. Divide by 2^30
-      double q2 = ((double)data.Quat9.Data.Q2) / 1073741824.0; // Convert to double. Divide by 2^30
-      double q3 = ((double)data.Quat9.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
-      double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
-
-/*
-#ifndef QUAT_ANIMATION
-      SERIAL_PORT.print(F("Q1:"));
-      SERIAL_PORT.print(q1, 3);
-      SERIAL_PORT.print(F(" Q2:"));
-      SERIAL_PORT.print(q2, 3);
-      SERIAL_PORT.print(F(" Q3:"));
-      SERIAL_PORT.print(q3, 3);
-      SERIAL_PORT.print(F(" Accuracy:"));
-      SERIAL_PORT.println(data.Quat9.Data.Accuracy);
-#else
-  */      
-      /*SERIAL_PORT.print("w");
-      SERIAL_PORT.print(q0);
-      SERIAL_PORT.print("w");
-      SERIAL_PORT.print("a");
-      SERIAL_PORT.print(q1);
-      SERIAL_PORT.print("a");
-      SERIAL_PORT.print("b");
-      SERIAL_PORT.print(q2);
-      SERIAL_PORT.print("b");
-      SERIAL_PORT.print("c");
-      SERIAL_PORT.print(q3);
-      SERIAL_PORT.println("c");*/
-      
-      
-      /*
-      SERIAL_PORT.print(F("Q1:"));
-      SERIAL_PORT.print(q1, 3);
-      SERIAL_PORT.print(F(" Q2:"));
-      SERIAL_PORT.print(q2, 3);
-      SERIAL_PORT.print(F(" Q3:"));
-      SERIAL_PORT.println(q3, 3);
-*/
+      q1 = ((double)data.Quat9.Data.Q1) / 1073741824.0; // Convert to double. Divide by 2^30
+      q2 = ((double)data.Quat9.Data.Q2) / 1073741824.0; // Convert to double. Divide by 2^30
+      q3 = ((double)data.Quat9.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
+      q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
       // Convert the quaternions to Euler angles (roll, pitch, yaw)
       // https://en.wikipedia.org/w/index.php?title=Conversion_between_quaternions_and_Euler_angles&section=8#Source_code_2
-
-      //double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
       double q2sqr = q2 * q2;
 
@@ -520,7 +461,8 @@ bool Gravitone::updateOrientation()
       double t3 = +2.0 * (q0 * q3 + q1 * q2);
       double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
       yaw = atan2(t3, t4) * 180.0 / PI;
-
+      
+      
       /*SERIAL_PORT.print(F("Roll:"));
       SERIAL_PORT.print(roll, 1);
       SERIAL_PORT.print(F(" Pitch:"));
@@ -529,8 +471,6 @@ bool Gravitone::updateOrientation()
       SERIAL_PORT.println(yaw, 1);*/
       
       
-      
-
       // Output the Quaternion data in the format expected by ZaneL's Node.js Quaternion animation tool
       SERIAL_PORT.print(F("{\"quat_w\":"));
       SERIAL_PORT.print(q0, 3);
@@ -542,14 +482,10 @@ bool Gravitone::updateOrientation()
       SERIAL_PORT.print(q3, 3);
       SERIAL_PORT.println(F("}"));
       
-      
-      
-//#endif
-    return true;
+      return true;
     }
   } 
   return false;
-#endif
 } 
  
 /********************************************************************************************
@@ -577,7 +513,7 @@ void Gravitone::initButtons()
   // INITIALIZE STATES
   for( int i=0; i<12; i++ )
   {
-      buttonStates[i] = false;
+      buttonStates[i] = BUTTON_OPEN;
   }
   
   // FIRST BUTTON READ
@@ -614,16 +550,25 @@ void Gravitone::updateButtons()
         // READ ITH BUTTON VALUE AND INVERT FOR NEG LOGIC
         iVal = !((curPinVals & (1 << i)) > 0);
         
-        // SET STATE CHANGED BOOLEAN
-        if( iVal != buttonStates[i] ){
-            buttonStatesChanged[i] = true;
-        } else {
-            buttonStatesChanged[i] = false;
+        // update button states
+        if( iVal && ((buttonStates[i] == BUTTON_OPEN) || (buttonStates[i] == BUTTON_RELEASED)) ){
+          buttonStatesChanged[i] = true;
+          buttonStates[i] = BUTTON_PRESSED;
+        }
+        else if( !iVal && ((buttonStates[i] == BUTTON_PRESSED) || (buttonStates[i] == BUTTON_HELD)) ){
+          buttonStatesChanged[i] = true;
+          buttonStates[i] = BUTTON_RELEASED;
+        }
+        else {          
+          buttonStatesChanged[i] = false;
+          if( !iVal && (buttonStates[i] == BUTTON_RELEASED) ){
+            buttonStates[i] = BUTTON_OPEN;
+          }
+          if( iVal && (buttonStates[i] == BUTTON_PRESSED) ){
+            buttonStates[i] = BUTTON_HELD;
+          }
         }
         
-        // STORE CURRENT VALUE AND CALL EVENT HANDLER
-        buttonStates[i] = iVal;
-        //eventHandler(i, iVal);
     }
 }
 
