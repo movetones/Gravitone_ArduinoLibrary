@@ -25,21 +25,24 @@
 #define GTONE_USE_DMP 
 #define SERIAL_PORT Serial
 
+#define MAX_PATCHES 75
 
 typedef const Adafruit_SSD1306  gtdisplay_t;
 typedef const Adafruit_MCP23017 gtbuttons_t;
 
 class GravitoneMode {
 public:
-  GravitoneMode() {
-    patchCords[0] = new AudioConnection(amp1, fade1);
-    patchCords[1] = new AudioConnection(fade1, 0, i2s1, 0);
-    patchCords[2] = new AudioConnection(fade1, 0, i2s1, 1);
+  GravitoneMode() : numPatches(0) {
+    addPatch( new AudioConnection(amp1, fade1) );
+    addPatch( new AudioConnection(fade1, 0, i2s1, 0) );
+    addPatch( new AudioConnection(fade1, 0, i2s1, 1) );
     amp1.gain(0.2);
     fade1.fadeOut(500);
   };
   
-  virtual ~GravitoneMode();
+  ~GravitoneMode();
+  
+  void addPatch(AudioConnection *cable);
   
   virtual void start(gtdisplay_t &display) = 0;
   
@@ -62,7 +65,8 @@ public:
   
   virtual void onUpdateOrientation(double y, double p, double r ) {};
   
-  AudioConnection *patchCords[3];
+  AudioConnection *patchCoords[3];
+  int numPatches;
   
   AudioAmplifier           amp1;           //xy=323,403
   AudioEffectFade          fade1;          //xy=492,402

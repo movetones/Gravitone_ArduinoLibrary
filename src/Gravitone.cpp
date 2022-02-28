@@ -11,8 +11,17 @@ Adafruit_SSD1306 Gravitone::display = Adafruit_SSD1306(-1);
 
 
 GravitoneMode::~GravitoneMode() {
-
+  for( int i=0; i<numPatches; i++ ){
+    delete patchCoords[i];
+  }
+  numPatches = 0;
 }
+
+void GravitoneMode::addPatch(AudioConnection *cable)
+{
+  patchCoords[numPatches] = cable;
+  numPatches++;
+} 
 
 /********************************************************************************************
  *
@@ -44,7 +53,7 @@ bool Gravitone::begin()
   if( ok ){
     display.print(" OK");
     display.display();
-    
+    drawVolume();
     updateBattery();
   } else {
     display.print("IMU init failed");

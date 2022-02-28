@@ -31,9 +31,7 @@ public:
   uint8_t scaleIndex;
   gs_Scale *scale;
 
-  AudioConnection *cords[4];
   AudioSynthWaveform       waveform1;      //xy=140,403
-
 };
 
 
