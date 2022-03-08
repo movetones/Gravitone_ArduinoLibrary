@@ -65,6 +65,17 @@ bool Gravitone::begin()
   displayUpdateInterval = 175;
   batteryUpdateInterval = 5000;
   
+  Serial1.begin(115200);
+  pinMode(ESP_GPIO0, INPUT); // should be pulled high by resistor meaning enabled
+  pinMode(ESP_EN, INPUT);    // should be pulled high by resistor meaning enabled
+  
+  Serial.println("Resetting ESP");  
+  pinMode(ESP_RST, OUTPUT);
+  digitalWrite(ESP_RST, LOW);
+  delay(500);
+  pinMode(ESP_RST, INPUT); // pulled high by external resistor
+  
+  
   return ok;
 }
 
@@ -168,6 +179,15 @@ void Gravitone::eventLoop() {
       }
       
       lastButtonUpdate = now;
+    }
+  }
+  
+  if( handleEsp ){
+    while( Serial.available() ){
+      Serial1.write(Serial.read());
+    }
+    while( Serial1.available() ){
+      Serial.write(Serial1.read());
     }
   }
 }
@@ -481,6 +501,7 @@ bool Gravitone::updateOrientation()
       
       
       // Output the Quaternion data in the format expected by ZaneL's Node.js Quaternion animation tool
+      /*
       SERIAL_PORT.print(F("{\"quat_w\":"));
       SERIAL_PORT.print(q0, 3);
       SERIAL_PORT.print(F(", \"quat_x\":"));
@@ -490,6 +511,7 @@ bool Gravitone::updateOrientation()
       SERIAL_PORT.print(F(", \"quat_z\":"));
       SERIAL_PORT.print(q3, 3);
       SERIAL_PORT.println(F("}"));
+      */
       
       return true;
     }

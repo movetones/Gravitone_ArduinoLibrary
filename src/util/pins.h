@@ -8,3 +8,7 @@
 #define BATTERY_STAT	20 // HIGH = CHARGING
 #define ICM20948_INT	13 // ICM -> ARDUINO
 #define ICM20948_SYNC	14 // ARDUINO -> ICM
+
+#define ESP_GPIO0 2
+#define ESP_RST   3
+#define ESP_EN    4

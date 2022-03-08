@@ -25,6 +25,8 @@
 #define GTONE_USE_DMP 
 #define SERIAL_PORT Serial
 
+#define GTONE_WIFI
+
 #define MAX_PATCHES 75
 
 typedef const Adafruit_SSD1306  gtdisplay_t;
@@ -53,15 +55,15 @@ public:
   //virtual void button3(butevent_t event, gtdisplay_t & display);
   
   
-  virtual void button4(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button5(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button6(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button7(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button8(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button9(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button10(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button11(butevent_t event, gtdisplay_t & display) = 0;
-  virtual void button12(butevent_t event, gtdisplay_t & display) = 0;
+  virtual void button4(butevent_t event, gtdisplay_t & display) {};
+  virtual void button5(butevent_t event, gtdisplay_t & display) {};
+  virtual void button6(butevent_t event, gtdisplay_t & display) {};
+  virtual void button7(butevent_t event, gtdisplay_t & display) {};
+  virtual void button8(butevent_t event, gtdisplay_t & display) {};
+  virtual void button9(butevent_t event, gtdisplay_t & display) {};
+  virtual void button10(butevent_t event, gtdisplay_t & display) {};
+  virtual void button11(butevent_t event, gtdisplay_t & display) {};
+  virtual void button12(butevent_t event, gtdisplay_t & display) {};
   
   virtual void onUpdateOrientation(double y, double p, double r ) {};
   
@@ -83,7 +85,8 @@ public:
                 lastButtonUpdate(0),
                 lastImuUpdate(0),
                 inactivityTimer(0),
-                volume(1) {};
+                volume(1),
+                handleEsp(true) {};
   ~Gravitone() {};
   
   bool begin();
@@ -127,6 +130,8 @@ private:
   bool initImu();
   void initScreen();
   void initButtons();
+
+  bool handleEsp;
 
   int volume;
   double yaw, pitch, roll;
