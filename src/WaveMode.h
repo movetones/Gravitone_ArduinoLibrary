@@ -1,5 +1,5 @@
-#include "Gravitone.h"
-
+#include "GravitoneOutputMode.h"
+#include "scale.h"
 
 class WaveMode : public GravitoneOutputMode {
 public:

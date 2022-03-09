@@ -2,7 +2,7 @@
 #define VOLUME_H
 
 
-static const unsigned char PROGMEM drawable_8x8_volume_mute[] =
+static unsigned char PROGMEM drawable_8x8_volume_mute[] =
 { B10000001,
   B01000010,
   B00100100,
@@ -12,7 +12,7 @@ static const unsigned char PROGMEM drawable_8x8_volume_mute[] =
   B01000010,
   B10000001 };
 
-static const unsigned char PROGMEM drawable_8x8_volume_25[] =
+static unsigned char PROGMEM drawable_8x8_volume_25[] =
 { B00000000,
   B00000000,
   B00000000,
@@ -22,7 +22,7 @@ static const unsigned char PROGMEM drawable_8x8_volume_25[] =
   B11000000,
   B11111111 };
 
-static const unsigned char PROGMEM drawable_8x8_volume_50[] =
+static unsigned char PROGMEM drawable_8x8_volume_50[] =
 { B00000000,
   B00000000,
   B00000000,
@@ -32,7 +32,7 @@ static const unsigned char PROGMEM drawable_8x8_volume_50[] =
   B11110000,
   B11111111 };
 
-static const unsigned char PROGMEM drawable_8x8_volume_75[] =
+static unsigned char PROGMEM drawable_8x8_volume_75[] =
 { B00000000,
   B00000000,
   B00001100,
@@ -42,7 +42,7 @@ static const unsigned char PROGMEM drawable_8x8_volume_75[] =
   B11111100,
   B11111111 };
 
-static const unsigned char PROGMEM drawable_8x8_volume_100[] =
+static unsigned char PROGMEM drawable_8x8_volume_100[] =
 { B00000011,
   B00000011,
   B00001111,
@@ -52,7 +52,7 @@ static const unsigned char PROGMEM drawable_8x8_volume_100[] =
   B11111111,
   B11111111 };
 
-static const uint8_t* getDrawableForVolumeLevel(uint8_t lvl)
+static uint8_t* getDrawableForVolumeLevel(uint8_t lvl)
 {
   switch ( lvl ) {
     case 0: return drawable_8x8_volume_mute; break;

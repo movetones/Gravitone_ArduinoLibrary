@@ -1,13 +1,16 @@
 #include "WaveMode.h"
 
 WaveMode::WaveMode() {
-  
+  scaleIndex = 0;
+  scaleTypeIndex = 0;
   activeWaveform = WAVEFORM_SINE;
   playing = false;
   continuous = false;
   octaveShift = 0;
   note = 440;
   int note = 5;
+  waveform1.begin(0.8, 220, activeWaveform);
+  Serial.println("done with WaveMode constuctor");
 };
 
 WaveMode::~WaveMode() {}
@@ -27,7 +30,11 @@ void WaveMode::start()
   
   addPatch( new AudioConnection(waveform1, amp1) );
   
-  waveform1.begin(0.8, 220, activeWaveform);
+  Serial.println("added patch");
+  
+  waveform1.amplitude(0.8);
+  
+  Serial.println("set amplitude");
 
   hardware->display.setTextSize(0);
   hardware->display.setTextColor(WHITE, BLACK);
@@ -54,9 +61,10 @@ void WaveMode::start()
 
 void WaveMode::stop()
 {
+  //waveform1.amplitude(0);
   delete scale;
   GravitoneOutputMode::stop();
-  clearPatches();
+  //clearPatches();
   Serial.println("stoppping WaveMode");
   hardware->display.clearDisplay();
 }
