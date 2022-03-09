@@ -5,29 +5,41 @@
 
 
 // get other libraries instantiated
-ICM_20948_I2C Gravitone::myICM = ICM_20948_I2C();
-Adafruit_MCP23017 Gravitone::mcp = Adafruit_MCP23017();
-Adafruit_SSD1306 Gravitone::display = Adafruit_SSD1306(-1);
+ICM_20948_I2C GravitoneHardware::myICM = ICM_20948_I2C();
+Adafruit_MCP23017 GravitoneHardware::mcp = Adafruit_MCP23017();
+Adafruit_SSD1306 GravitoneHardware::display = Adafruit_SSD1306(-1);
 
-
-GravitoneMode::~GravitoneMode() {
-  for( int i=0; i<numPatches; i++ ){
-    delete patchCoords[i];
-  }
-  numPatches = 0;
-}
+GravitoneHardware Gravitone::hardware = GravitoneHardware();
 
 void GravitoneMode::addPatch(AudioConnection *cable)
 {
   patchCoords[numPatches] = cable;
   numPatches++;
-} 
+}
+
+void GravitoneMode::clearPatches()
+{
+  #ifdef DEBUG_VERBOSE
+  SERIAL.println("clearing patchCoords");
+  #endif
+
+  while(numPatches > 0) {
+    delete patchCoords[numPatches-1];
+    numPatches--;
+  }
+}
+
+
+bool Gravitone::begin()
+{
+  return hardware.begin();
+}
 
 /********************************************************************************************
  *
  *
  *******************************************************************************************/
-bool Gravitone::begin()
+bool GravitoneHardware::begin()
 {
   analogReadAveraging(32);
 
@@ -53,14 +65,12 @@ bool Gravitone::begin()
   if( ok ){
     display.print(" OK");
     display.display();
-    drawVolume();
     updateBattery();
   } else {
     display.print("IMU init failed");
     display.display();
   }
   
-  imuUpdateInterval = 20;
   buttonUpdateInterval = 50;
   displayUpdateInterval = 175;
   batteryUpdateInterval = 5000;
@@ -83,26 +93,108 @@ bool Gravitone::begin()
  *
  *
  *******************************************************************************************/
+void Gravitone::setActiveMode(int id) {
+  if( activeMode >= 0 ){ // if there is a mode started
+    mode->stop();
+  }
 
-void Gravitone::setMode(GravitoneMode *m) {
-  mode = m;
-  mode->start(display);
+  if( numModes > 0  && id >= 0 && id < numModes ){\
+    Serial.print("Setting activeMode to "); Serial.println(id);
+    activeMode = id;
+    mode = modes[id];
+    mode->start();
+  }
 }
 
 /********************************************************************************************
  *
  *
  *******************************************************************************************/
-GravitoneMode* Gravitone::getMode() {
-  return mode;
+void Gravitone::addMode(GravitoneMode *m) {
+  modes[numModes] = m;
+  modes[numModes]->setHardware(&hardware);
+  numModes += 1;
 }
 
+
+void Gravitone::eventLoop()
+{
+  static bool modeSwitch = false;
+  bool newButtons = false, newImu = false;
+  
+  hardware.update(newButtons, newImu);
+  
+  if( newImu ){
+    mode->onUpdateOrientation();
+  }
+  
+  if( newButtons ){
+    int bid = hardware.lastButtonPress();
+    switch ( bid ){
+      case GB1:
+        if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
+          modeSwitch = true;
+        } else {
+          modeSwitch = false;
+        }
+        break;
+      case GB2:
+        if( modeSwitch ){
+          if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
+            hardware.display.clearDisplay();
+            setActiveMode( (activeMode + 1) % numModes );
+          }
+        } else {
+          mode->button2(hardware.getButtonState(bid));
+        }
+        break;
+      case GB3:
+        if( modeSwitch ){
+          if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
+            hardware.display.clearDisplay();
+            setActiveMode( (activeMode + 1) % numModes );
+          }
+        } else {
+          mode->button3(hardware.getButtonState(bid));
+        }
+        break;
+      case GB4:
+        mode->button4(hardware.getButtonState(bid));
+        break;
+      case GB5:
+        mode->button5(hardware.getButtonState(bid));
+        break;
+      case GB6:
+        mode->button6(hardware.getButtonState(bid));
+        break;
+      case GB7:
+        mode->button7(hardware.getButtonState(bid));
+        break;
+      case GB8:
+        mode->button8(hardware.getButtonState(bid));
+        break;
+      case GB9:
+        mode->button9(hardware.getButtonState(bid));
+        break;
+      case GB10:
+        mode->button10(hardware.getButtonState(bid));
+        break;
+      case GB11:
+        mode->button11(hardware.getButtonState(bid));
+        break;
+      case GB12:
+        mode->button12(hardware.getButtonState(bid));
+        break; 
+    }
+  }
+
+}
 
 /********************************************************************************************
  *
  *
  *******************************************************************************************/
-void Gravitone::eventLoop() {
+void GravitoneHardware::update(bool &newButtons, bool &newImu) {
   unsigned long now = millis();
   
   if ( now - lastDisplayUpdate > displayUpdateInterval ){
@@ -116,68 +208,16 @@ void Gravitone::eventLoop() {
     lastBatteryUpdate = now;
   }
   
-//  now = millis();
-//  if ( now - lastImuUpdate > imuUpdateInterval ){
-    if( updateOrientation() ) {
-      mode->onUpdateOrientation(yaw, pitch, roll);
-    }
-//    lastImuUpdate = now;
-//  }
-  
+  if( updateOrientation() ) {
+    newImu = true;
+    lastImuUpdate = now;
+  }
+
   now = millis();
   if ( now - lastButtonUpdate > buttonUpdateInterval ){
     updateButtons();
     if( buttonsAvailable() ){
-      int bid = lastButtonPress();
-      
-      if( bid == GB1 ){
-        Serial.print("button 1");
-      }
-      
-      if( bid == GB2 ){
-        Serial.print("button 2");
-        if( getButtonState(bid) == BUTTON_PRESSED ){
-          Serial.println("b2 pressed");
-          cycleVolume(VOL_DOWN);
-        }
-      }
-      
-      if( bid == GB3 ){
-        Serial.print("button 3");
-        if( getButtonState(bid) == BUTTON_PRESSED ){
-          Serial.println("b3 pressed");
-          cycleVolume(VOL_UP);
-        }
-      }
-      
-      if( bid == GB4 ){
-        mode->button4(getButtonState(bid), display);
-      }
-      if( bid == GB5 ){
-        mode->button5(getButtonState(bid), display);
-      }
-      if( bid == GB6 ){
-        mode->button6(getButtonState(bid), display);
-      }
-      if( bid == GB7 ){
-        mode->button7(getButtonState(bid), display);
-      }
-      if( bid == GB8 ){
-        mode->button8(getButtonState(bid), display);
-      }
-      if( bid == GB9 ){
-        mode->button9(getButtonState(bid), display);
-      }
-      if( bid == GB10 ){
-        mode->button10(getButtonState(bid), display);
-      }
-      if( bid == GB11 ){
-        mode->button11(getButtonState(bid), display);
-      }
-      if( bid == GB12 ){
-        mode->button12(getButtonState(bid), display);
-      }
-      
+      newButtons = true;
       lastButtonUpdate = now;
     }
   }
@@ -196,7 +236,7 @@ void Gravitone::eventLoop() {
  *
  *
  *******************************************************************************************/
-void Gravitone::updateBattery() {
+void GravitoneHardware::updateBattery() {
   uint16_t rawBattery = analogRead(BATTERY_SENSE);
   float batVoltage = (rawBattery / 1023.0) * 3.3 * 2.0;
 
@@ -214,15 +254,15 @@ void Gravitone::updateBattery() {
  *
  *
  *******************************************************************************************/
-void Gravitone::drawVolume() {
-  display.drawBitmap(102, 0,  getDrawableForVolumeLevel(volume), 8, 8, 1, 0);
+void GravitoneOutputMode::drawVolume() {
+  hardware->display.drawBitmap(102, 0,  getDrawableForVolumeLevel(volume), 8, 8, 1, 0);
 }
 
 /********************************************************************************************
  *
  *
  *******************************************************************************************/
-void Gravitone::cycleVolume(int dir) {
+void GravitoneOutputMode::cycleVolume(int dir) {
   if ( dir > 0) {
     if ( volume >= 4 ) return;
     volume = (volume + 1) % 5;
@@ -237,7 +277,7 @@ void Gravitone::cycleVolume(int dir) {
  *
  *
  *******************************************************************************************/
-void Gravitone::setVolume() {
+void GravitoneOutputMode::setVolume() {
   setVolume(volume);
 }
 
@@ -245,25 +285,25 @@ void Gravitone::setVolume() {
  *
  *
  *******************************************************************************************/
-void Gravitone::setVolume(int vol) {
+void GravitoneOutputMode::setVolume(int vol) {
   if ( vol > 0 ) {
-    setSpeakerState(true);
+    hardware->enableAmp();
     switch ( vol ) {
       case 1: 
-        mode->amp1.gain(0.2);
+        amp1.gain(0.2);
         break;
       case 2: 
-        mode->amp1.gain(0.5);
+        amp1.gain(0.5);
         break;
       case 3: 
-        mode->amp1.gain(0.7);
+        amp1.gain(0.7);
         break;
       case 4: 
-        mode->amp1.gain(0.9);
+        amp1.gain(0.9);
         break;
     }
   } else {
-    setSpeakerState(false);
+    hardware->disableAmp();
   }
   drawVolume();
 }
@@ -272,7 +312,7 @@ void Gravitone::setVolume(int vol) {
  *
  *
  *******************************************************************************************/
-bool Gravitone::initImu()
+bool GravitoneHardware::initImu()
 {
   bool initialized = false;
   int tries = 0;
@@ -406,7 +446,7 @@ bool Gravitone::initImu()
  *
  *
  *******************************************************************************************/
-bool Gravitone::updateOrientation()
+bool GravitoneHardware::updateOrientation()
 {
   icm_20948_DMP_data_t data;
   myICM.readDMPdataFromFIFO(&data);
@@ -523,7 +563,7 @@ bool Gravitone::updateOrientation()
  *
  *
  *******************************************************************************************/
-void Gravitone::initButtons()
+void GravitoneHardware::initButtons()
 {
   // SET INTERRUPT PINS AS INPUTS
   pinMode(MCP23017_INTA, INPUT);
@@ -556,7 +596,7 @@ void Gravitone::initButtons()
  *
  *
  *******************************************************************************************/
-void Gravitone::initScreen()
+void GravitoneHardware::initScreen()
 {
   // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
@@ -570,7 +610,7 @@ void Gravitone::initScreen()
  *
  *
  *******************************************************************************************/
-void Gravitone::updateButtons()
+void GravitoneHardware::updateButtons()
 {
     // READ CURRENT STATE
     uint16_t i, curPinVals = mcp.readGPIOAB();
@@ -608,7 +648,7 @@ void Gravitone::updateButtons()
  *
  *
  *******************************************************************************************/
-bool Gravitone::buttonsAvailable()
+bool GravitoneHardware::buttonsAvailable()
 {
   for( int i=0; i<12; i++ ){
     if( buttonStatesChanged[i] ) return true;
@@ -621,7 +661,7 @@ bool Gravitone::buttonsAvailable()
  *
  *
  *******************************************************************************************/
-int Gravitone::lastButtonPress()
+int GravitoneHardware::lastButtonPress()
 {
   for( int i=0; i<12; i++ ){
     if( buttonStatesChanged[i] ) return i;
@@ -633,7 +673,7 @@ int Gravitone::lastButtonPress()
  *
  *
  *******************************************************************************************/
-void Gravitone::setSpeakerState(bool state) {
+void GravitoneHardware::setAmpState(bool state) {
   if ( state ) {
     pinMode(MAX98357_MODE, INPUT);
   } else {
@@ -642,11 +682,12 @@ void Gravitone::setSpeakerState(bool state) {
   }
 }
 
+
 /********************************************************************************************
  *
  *
  *******************************************************************************************/
-void Gravitone::imuSleep() {
+void GravitoneHardware::imuSleep() {
   myICM.lowPower(true);
   myICM.sleep(true);
 }
@@ -655,7 +696,7 @@ void Gravitone::imuSleep() {
  *
  *
  *******************************************************************************************/
-void Gravitone::imuWake() {
+void GravitoneHardware::imuWake() {
   myICM.sleep(false);
   myICM.lowPower(false);
 }

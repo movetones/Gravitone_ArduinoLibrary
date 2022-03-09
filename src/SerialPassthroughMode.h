@@ -9,41 +9,41 @@ public:
   SerialPassthroughMode() {};
   ~SerialPassthroughMode() {};
   
-  void start(gtdisplay_t & display) {
-    display.setTextSize(0);
-    display.setTextColor(WHITE, BLACK);
-    display.setCursor(0, 0);
-    display.print("Serial1 pipe");
-    display.setCursor(0,20);
-    display.print("RST HIGH");
-    display.setCursor(0,10);
-    display.print("GPIO 0 HIGH");
+  void start() {
+    hardware->display.setTextSize(0);
+    hardware->display.setTextColor(WHITE, BLACK);
+    hardware->display.setCursor(0, 0);
+    hardware->display.print("Serial1 pipe");
+    hardware->display.setCursor(0,20);
+    hardware->display.print("RST HIGH");
+    hardware->display.setCursor(0,10);
+    hardware->display.print("GPIO 0 HIGH");
   };
   
   
-  void button4(butevent_t event, gtdisplay_t & display) {
+  void button4(butevent_t event) {
     if( event == BUTTON_PRESSED ){
       pinMode(ESP_RST, OUTPUT);
       digitalWrite(ESP_RST, LOW);
-      display.setCursor(0,20);
-      display.print("RST LOW ");
+      hardware->display.setCursor(0,20);
+      hardware->display.print("RST LOW ");
     } else if( event == BUTTON_RELEASED ){
       pinMode(ESP_RST, INPUT);
-      display.setCursor(0,20);
-      display.print("RST HIGH");
+      hardware->display.setCursor(0,20);
+      hardware->display.print("RST HIGH");
     }
   };
   
-  void button5(butevent_t event, gtdisplay_t & display) {
+  void button5(butevent_t event) {
     if( event == BUTTON_PRESSED ){
       pinMode(ESP_GPIO0, OUTPUT);
       digitalWrite(ESP_GPIO0, LOW);
-      display.setCursor(0,10);
-      display.print("GPIO 0 LOW ");
+      hardware->display.setCursor(0,10);
+      hardware->display.print("GPIO 0 LOW ");
     } else if( event == BUTTON_RELEASED ){
       pinMode(ESP_GPIO0, INPUT);
-      display.setCursor(0,10);
-      display.print("GPIO 0 HIGH");
+      hardware->display.setCursor(0,10);
+      hardware->display.print("GPIO 0 HIGH");
     }
   };
 };

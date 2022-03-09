@@ -1,25 +1,28 @@
 #include "Gravitone.h"
 
 
-class WaveMode : public GravitoneMode {
+class WaveMode : public GravitoneOutputMode {
 public:
 
   WaveMode();
   ~WaveMode();
   
-  void start(gtdisplay_t & display);
+  void start();
+  void stop();
   
-  void button4(butevent_t event, gtdisplay_t & display);
-  void button5(butevent_t event, gtdisplay_t & display);
-  void button6(butevent_t event, gtdisplay_t & display);
-  void button7(butevent_t event, gtdisplay_t & display);
-  void button8(butevent_t event, gtdisplay_t & display);
-  void button9(butevent_t event, gtdisplay_t & display);
-  void button10(butevent_t event, gtdisplay_t & display);
-  void button11(butevent_t event, gtdisplay_t & display);
-  void button12(butevent_t event, gtdisplay_t & display);
+  void button4(butevent_t event);
+  void button5(butevent_t event);
+  void button6(butevent_t event);
+  void button7(butevent_t event);
+  void button8(butevent_t event);
+  void button9(butevent_t event);
+  void button10(butevent_t event);
+  void button11(butevent_t event);
+  void button12(butevent_t event);
   
-  void onUpdateOrientation(double y, double p, double r);
+  void onUpdateOrientation();
+  
+  const char * getName();
   
   int activeWaveform;
   bool playing;

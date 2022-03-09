@@ -8,37 +8,64 @@ WaveMode::WaveMode() {
   octaveShift = 0;
   note = 440;
   int note = 5;
-
-  scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 1);
-  
-  addPatch( new AudioConnection(waveform1, amp1) );
-  
-  waveform1.begin(0.8, 220, activeWaveform);
 };
 
 WaveMode::~WaveMode() {}
 
-void WaveMode::start(gtdisplay_t & display) {
-  display.setTextSize(0);
-  display.setTextColor(WHITE, BLACK);
-  display.setCursor(0, 0);
-  display.print("WaveMode");
-  display.fillRect(68,12,80,10,BLACK);
-  display.setCursor(68,12);
+const char *WaveMode::getName()
+{
+  return "WaveMode";
+}
+
+void WaveMode::start() 
+{
+  GravitoneOutputMode::start();
+
+  scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 1);
+  
+  Serial.println("created scale");
+  
+  addPatch( new AudioConnection(waveform1, amp1) );
+  
+  waveform1.begin(0.8, 220, activeWaveform);
+
+  hardware->display.setTextSize(0);
+  hardware->display.setTextColor(WHITE, BLACK);
+  hardware->display.setCursor(0, 0);
+  hardware->display.print("WaveMode");
+  hardware->display.fillRect(68,12,80,10,BLACK);
+  hardware->display.setCursor(68,12);
   if( continuous ){
-    display.print("Continuous");
+    hardware->display.print("Continuous");
   } else {
-    display.print("Scale");
+    hardware->display.print("Scale");
   }
-  display.fillRect(0,12, 50, 10, BLACK);
-  display.setCursor(0,12);
-  display.print("Sine");
-  display.setCursor(0, 0);
-  display.fillRect(0,0,90,10,BLACK);
-  display.print(scale->getName());
+  hardware->display.fillRect(0,12, 50, 10, BLACK);
+  hardware->display.setCursor(0,12);
+  hardware->display.print("Sine");
+  hardware->display.setCursor(0, 0);
+  hardware->display.fillRect(0,0,90,10,BLACK);
+  hardware->display.print(scale->getName());
+  
+  
+  Serial.print("end of WaveMode start(), numPatches is ");
+  Serial.println(numPatches);
 };
 
-void WaveMode::onUpdateOrientation(double yaw, double pitch, double roll) {
+void WaveMode::stop()
+{
+  delete scale;
+  GravitoneOutputMode::stop();
+  clearPatches();
+  Serial.println("stoppping WaveMode");
+  hardware->display.clearDisplay();
+}
+
+void WaveMode::onUpdateOrientation() 
+{
+  double yaw   = hardware->getYaw();
+  double pitch = hardware->getPitch();
+  double roll  = hardware->getRoll();
 
   note = map(pitch, -70, 70, 0, scale->getNoteCount());
   freq = scale->getNote(note)->freq * pow(2, octaveShift);
@@ -53,7 +80,7 @@ void WaveMode::onUpdateOrientation(double yaw, double pitch, double roll) {
    waveform1.frequency(freq);
 }
 
-void WaveMode::button4(butevent_t event, gtdisplay_t & display){
+void WaveMode::button4(butevent_t event){
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 4 pressed");
     playing = true;
@@ -64,90 +91,90 @@ void WaveMode::button4(butevent_t event, gtdisplay_t & display){
   }  
 }
 
-void WaveMode::button5(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button5(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 5 pressed");
   }
 }
 
-void WaveMode::button6(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button6(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("button 6 pressed");
     scaleIndex = (scaleIndex + 1) % 12;
     delete scale;
     scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
-    display.setCursor(0, 0);
-    display.fillRect(0,0,90,10,BLACK);
-    display.print(scale->getName());
+    hardware->display.setCursor(0, 0);
+    hardware->display.fillRect(0,0,90,10,BLACK);
+    hardware->display.print(scale->getName());
   }
 }
 
-void WaveMode::button7(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button7(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("button 7 pressed");
     continuous = !continuous;
-    display.fillRect(68,12,80,10,BLACK);
-    display.setCursor(68,12);
+    hardware->display.fillRect(68,12,80,10,BLACK);
+    hardware->display.setCursor(68,12);
     if( continuous ){
-      display.print("Continuous");
+      hardware->display.print("Continuous");
     } else {
-      display.print("Scale");
+      hardware->display.print("Scale");
     }
   }
 }
 
-void WaveMode::button8(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button8(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("button 8 pressed");
     scaleTypeIndex = (scaleTypeIndex + 1) % GS_NUM_SCALE_PATTERNS;
     delete scale;
     scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
-    display.setCursor(0, 0);
-    display.fillRect(0,0,90,10,BLACK);
-    display.print(scale->getName());
+    hardware->display.setCursor(0, 0);
+    hardware->display.fillRect(0,0,90,10,BLACK);
+    hardware->display.print(scale->getName());
   }
 }
 
-void WaveMode::button9(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button9(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 9 pressed");
-    display.fillRect(0,12, 50, 10, BLACK);
-    display.setCursor(0,12);
+    hardware->display.fillRect(0,12, 50, 10, BLACK);
+    hardware->display.setCursor(0,12);
     activeWaveform = WAVEFORM_TRIANGLE;
     waveform1.begin(activeWaveform);
-    display.print("Triangle");
+    hardware->display.print("Triangle");
   }
 }
 
-void WaveMode::button10(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button10(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 10 pressed");
-    display.fillRect(0,12, 50, 10, BLACK);
-    display.setCursor(0,12);
+    hardware->display.fillRect(0,12, 50, 10, BLACK);
+    hardware->display.setCursor(0,12);
     activeWaveform = WAVEFORM_SINE;
     waveform1.begin(activeWaveform);
-    display.print("Sine");
+    hardware->display.print("Sine");
   }
 }
 
-void WaveMode::button11(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button11(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 11 pressed");
-    display.fillRect(0,12, 50, 10, BLACK);
-    display.setCursor(0,12);
+    hardware->display.fillRect(0,12, 50, 10, BLACK);
+    hardware->display.setCursor(0,12);
     activeWaveform = WAVEFORM_SAWTOOTH;
     waveform1.begin(activeWaveform);
-    display.print("Sawtooth");
+    hardware->display.print("Sawtooth");
   }
 }
 
-void WaveMode::button12(butevent_t event, gtdisplay_t & display) {
+void WaveMode::button12(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 12 pressed");
     activeWaveform = WAVEFORM_SQUARE;
     waveform1.begin(activeWaveform);
-    display.fillRect(0,12, 50, 10, BLACK);
-    display.setCursor(0,12);
-    display.print("Square");
+    hardware->display.fillRect(0,12, 50, 10, BLACK);
+    hardware->display.setCursor(0,12);
+    hardware->display.print("Square");
   }
 }

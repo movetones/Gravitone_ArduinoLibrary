@@ -1,8 +1,6 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 
-#define VOL_UP    1
-#define VOL_DOWN -1
 
 static const unsigned char PROGMEM drawable_8x8_volume_mute[] =
 { B10000001,
