@@ -6,24 +6,26 @@
 class GravitoneOutputMode : public GravitoneMode {
 public:
   GravitoneOutputMode() : volume(1) {};
-  ~GravitoneOutputMode() {};
+  ~GravitoneOutputMode() {  };
   
-  void start() {
+  void begin() {
     addPatch( new AudioConnection(amp1, fade1) );
-    addPatch( new AudioConnection(fade1, 0, i2s1, 0) );
-    addPatch( new AudioConnection(fade1, 0, i2s1, 1) );
-    amp1.gain(0.2);
+    addPatch( new AudioConnection(fade1, 0, hardware->i2s1, 0) );
+    addPatch( new AudioConnection(fade1, 0, hardware->i2s1, 1) );
+  }
+
+  void start() {
     fade1.fadeOut(500);
     hardware->enableAmp();
     drawVolume();
     setVolume();
-    
+    reconnectPatches();
     Serial.print("End of GravitoneOutputMode start(), numPatches = ");
     Serial.println(numPatches);
   }
   
   void stop() {
-    clearPatches();
+    disconnectPatches();
     hardware->display.clearDisplay();
     hardware->disableAmp();
   }
@@ -48,7 +50,6 @@ public:
   
   AudioAmplifier           amp1;           //xy=323,403
   AudioEffectFade          fade1;          //xy=492,402
-  AudioOutputI2S           i2s1;           //xy=793,403 
   
   int volume;                  
 };

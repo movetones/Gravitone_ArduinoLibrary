@@ -14,7 +14,11 @@
 
 class Gravitone {
 public:
-  Gravitone() : numModes(0), activeMode(-1) {};
+  Gravitone() : numModes(0), activeMode(-1) {
+    for( int i=0; i<MAX_MODES; i++ ){
+      init[i] = false;
+    }
+  };
   ~Gravitone() {};
   
   bool begin();
@@ -28,6 +32,8 @@ public:
   
   int numModes, activeMode;
   
+  bool init[MAX_MODES];
+
   GravitoneMode *mode;
   
   GravitoneMode *modes[MAX_MODES];

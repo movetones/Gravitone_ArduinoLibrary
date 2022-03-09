@@ -5,6 +5,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_MCP23017.h>
+#include <Audio.h>
 
 #include "config.h"
 #include "util/battery.h"
@@ -12,7 +13,7 @@
 #include "util/buttons.h"
 #include "scale.h"
 
-#define MAX_PATCHES 75
+#define MAX_PATCHES 20
 #define MAX_MODES   10
 
 class GravitoneHardware {
@@ -32,7 +33,7 @@ public:
 
   bool begin();
   
-  void update(bool &newButtons, bool &newImu);
+  void update(bool &newButtons, bool &newImu, bool &newDisplay);
   
   void enableAmp()   { setAmpState(true);  };
   void disableAmp()  { setAmpState(false); };
@@ -51,6 +52,8 @@ public:
   void sleep();
   void wake();
   
+  AudioOutputI2S           i2s1;           //xy=793,403
+
   static ICM_20948_I2C myICM;
   static Adafruit_MCP23017 mcp;
   static Adafruit_SSD1306 display;

@@ -9,11 +9,16 @@ WaveMode::WaveMode() {
   octaveShift = 0;
   note = 440;
   int note = 5;
+  scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 1);
+  Serial.println("created scale");
   waveform1.begin(0.8, 220, activeWaveform);
+  addPatch( new AudioConnection(waveform1, amp1) );
   Serial.println("done with WaveMode constuctor");
 };
 
-WaveMode::~WaveMode() {}
+WaveMode::~WaveMode() {
+  delete scale;
+}
 
 const char *WaveMode::getName()
 {
@@ -24,22 +29,31 @@ void WaveMode::start()
 {
   GravitoneOutputMode::start();
 
-  scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 1);
-  
-  Serial.println("created scale");
-  
-  addPatch( new AudioConnection(waveform1, amp1) );
-  
-  Serial.println("added patch");
-  
   waveform1.amplitude(0.8);
   
-  Serial.println("set amplitude");
+  Serial.print("end of WaveMode start(), numPatches is ");
+  Serial.println(numPatches);
+  Serial.print(" address of scale is 0x");
+  Serial.println((unsigned long)scale, HEX);
+};
 
+void WaveMode::stop()
+{
+  //waveform1.amplitude(0);
+  //delete scale;
+  GravitoneOutputMode::stop();
+  //clearPatches();
+  Serial.println("stoppping WaveMode");
+  hardware->display.clearDisplay();
+}
+
+void WaveMode::onUpdateDisplay()
+{
   hardware->display.setTextSize(0);
   hardware->display.setTextColor(WHITE, BLACK);
   hardware->display.setCursor(0, 0);
   hardware->display.print("WaveMode");
+
   hardware->display.fillRect(68,12,80,10,BLACK);
   hardware->display.setCursor(68,12);
   if( continuous ){
@@ -47,26 +61,30 @@ void WaveMode::start()
   } else {
     hardware->display.print("Scale");
   }
+
   hardware->display.fillRect(0,12, 50, 10, BLACK);
   hardware->display.setCursor(0,12);
-  hardware->display.print("Sine");
+  switch( activeWaveform ) {
+  case WAVEFORM_SINE:
+    hardware->display.print("Sine");
+    break;
+  case WAVEFORM_SQUARE:
+    hardware->display.print("Square");
+    break;
+  case WAVEFORM_TRIANGLE:
+    hardware->display.print("Triangle");
+    break;
+  case WAVEFORM_SAWTOOTH:
+    hardware->display.print("Sawtooth");
+    break;
+  }
+
+  //hardware->display.setCursor(0, 20);
+  //hardware->display.print(AudioProcessorUsageMax());
+
   hardware->display.setCursor(0, 0);
   hardware->display.fillRect(0,0,90,10,BLACK);
   hardware->display.print(scale->getName());
-  
-  
-  Serial.print("end of WaveMode start(), numPatches is ");
-  Serial.println(numPatches);
-};
-
-void WaveMode::stop()
-{
-  //waveform1.amplitude(0);
-  delete scale;
-  GravitoneOutputMode::stop();
-  //clearPatches();
-  Serial.println("stoppping WaveMode");
-  hardware->display.clearDisplay();
 }
 
 void WaveMode::onUpdateOrientation() 
@@ -111,9 +129,6 @@ void WaveMode::button6(butevent_t event) {
     scaleIndex = (scaleIndex + 1) % 12;
     delete scale;
     scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
-    hardware->display.setCursor(0, 0);
-    hardware->display.fillRect(0,0,90,10,BLACK);
-    hardware->display.print(scale->getName());
   }
 }
 
@@ -121,13 +136,6 @@ void WaveMode::button7(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("button 7 pressed");
     continuous = !continuous;
-    hardware->display.fillRect(68,12,80,10,BLACK);
-    hardware->display.setCursor(68,12);
-    if( continuous ){
-      hardware->display.print("Continuous");
-    } else {
-      hardware->display.print("Scale");
-    }
   }
 }
 
@@ -137,42 +145,30 @@ void WaveMode::button8(butevent_t event) {
     scaleTypeIndex = (scaleTypeIndex + 1) % GS_NUM_SCALE_PATTERNS;
     delete scale;
     scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
-    hardware->display.setCursor(0, 0);
-    hardware->display.fillRect(0,0,90,10,BLACK);
-    hardware->display.print(scale->getName());
   }
 }
 
 void WaveMode::button9(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 9 pressed");
-    hardware->display.fillRect(0,12, 50, 10, BLACK);
-    hardware->display.setCursor(0,12);
     activeWaveform = WAVEFORM_TRIANGLE;
     waveform1.begin(activeWaveform);
-    hardware->display.print("Triangle");
   }
 }
 
 void WaveMode::button10(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 10 pressed");
-    hardware->display.fillRect(0,12, 50, 10, BLACK);
-    hardware->display.setCursor(0,12);
     activeWaveform = WAVEFORM_SINE;
     waveform1.begin(activeWaveform);
-    hardware->display.print("Sine");
   }
 }
 
 void WaveMode::button11(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 11 pressed");
-    hardware->display.fillRect(0,12, 50, 10, BLACK);
-    hardware->display.setCursor(0,12);
     activeWaveform = WAVEFORM_SAWTOOTH;
     waveform1.begin(activeWaveform);
-    hardware->display.print("Sawtooth");
   }
 }
 
@@ -181,8 +177,5 @@ void WaveMode::button12(butevent_t event) {
     Serial.println("Button 12 pressed");
     activeWaveform = WAVEFORM_SQUARE;
     waveform1.begin(activeWaveform);
-    hardware->display.fillRect(0,12, 50, 10, BLACK);
-    hardware->display.setCursor(0,12);
-    hardware->display.print("Square");
   }
 }

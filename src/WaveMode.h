@@ -21,7 +21,8 @@ public:
   void button12(butevent_t event);
   
   void onUpdateOrientation();
-  
+  void onUpdateDisplay();
+
   const char * getName();
   
   int activeWaveform;

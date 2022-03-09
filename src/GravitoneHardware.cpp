@@ -64,11 +64,12 @@ bool GravitoneHardware::begin()
  *
  *
  *******************************************************************************************/
-void GravitoneHardware::update(bool &newButtons, bool &newImu) {
+void GravitoneHardware::update(bool &newButtons, bool &newImu, bool &newDisplay) {
   unsigned long now = millis();
   
   if ( now - lastDisplayUpdate > displayUpdateInterval ){
     display.display();
+    newDisplay = true;
     lastDisplayUpdate = now;
   }
   

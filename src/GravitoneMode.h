@@ -13,15 +13,15 @@ class GravitoneMode {
 public:
   GravitoneMode() : numPatches(0) {};
   
-  ~GravitoneMode() { 
-    clearPatches();
-  };
+  ~GravitoneMode() { };
   
   void addPatch(AudioConnection *cable);
-  void clearPatches();
+  void reconnectPatches();
+  void disconnectPatches();
   
   void setHardware(GravitoneHardware *h) { hardware = h; };
   
+  virtual void begin() {};
   virtual void start() {};
   virtual void stop() {};
   
@@ -39,6 +39,7 @@ public:
   virtual void button12(butevent_t event) {};
   
   virtual void onUpdateOrientation() {};
+  virtual void onUpdateDisplay() {};
   
   virtual const char *getName() {};
   

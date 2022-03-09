@@ -25,6 +25,10 @@ void Gravitone::setActiveMode(int id) {
     Serial.print("Setting activeMode to "); Serial.println(id);
     activeMode = id;
     mode = modes[id];
+    if( init[activeMode] == false ){
+      mode->begin();
+      init[activeMode] = true;
+    }
     mode->start();
   }
 }
@@ -36,6 +40,7 @@ void Gravitone::setActiveMode(int id) {
 void Gravitone::addMode(GravitoneMode *m) {
   modes[numModes] = m;
   modes[numModes]->setHardware(&hardware);
+  init[numModes] = false;
   numModes += 1;
 }
 
@@ -43,12 +48,16 @@ void Gravitone::addMode(GravitoneMode *m) {
 void Gravitone::eventLoop()
 {
   static bool modeSwitch = false;
-  bool newButtons = false, newImu = false;
+  bool newButtons = false, newImu = false, newDisplay = false;
   
-  hardware.update(newButtons, newImu);
+  hardware.update(newButtons, newImu, newDisplay);
   
   if( newImu ){
     mode->onUpdateOrientation();
+  }
+
+  if( newDisplay ){
+    mode->onUpdateDisplay();
   }
   
   if( newButtons ){
