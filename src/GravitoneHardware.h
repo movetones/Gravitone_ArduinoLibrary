@@ -41,13 +41,18 @@ public:
   void setAmpState(bool state);
 
   bool updateOrientation();
-  float getYaw() { return yaw; }
-  float getPitch() { return pitch; }
-  float getRoll() { return roll; }
+  double getYaw() { return yaw; }
+  double getPitch() { return pitch; }
+  double getRoll() { return roll; }
+  double getQ0() { return q0; }
+  double getQ1() { return q1; }
+  double getQ2() { return q2; }
+  double getQ3() { return q3; }
 
   bool buttonsAvailable();
   int lastButtonPress();
   int getButtonState(int id) { return buttonStates[id]; }
+  uint8_t* getButtonStates() { return buttonStates; }
   
   void sleep();
   void wake();

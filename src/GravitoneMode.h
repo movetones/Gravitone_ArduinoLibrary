@@ -23,7 +23,7 @@ public:
   
   virtual void begin() {};
   virtual void start() {};
-  virtual void stop() {};
+  virtual void stop() { hardware->display.clearDisplay(); };
   
   virtual void button1(butevent_t event) {};
   virtual void button2(butevent_t event) {};

@@ -26,7 +26,6 @@ public:
   
   void stop() {
     disconnectPatches();
-    hardware->display.clearDisplay();
     hardware->disableAmp();
   }
   

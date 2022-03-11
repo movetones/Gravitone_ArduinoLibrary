@@ -66,15 +66,16 @@ void Gravitone::eventLoop()
       case GB1:
         if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
           modeSwitch = true;
-        } else {
+        } else if( hardware.getButtonState(bid) == BUTTON_RELEASED ){
           modeSwitch = false;
         }
         break;
       case GB2:
         if( modeSwitch ){
           if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
-            hardware.display.clearDisplay();
-            setActiveMode( (activeMode + 1) % numModes );
+            if( activeMode >= numModes ) activeMode = 0;
+            else activeMode ++;           
+            setActiveMode( activeMode );
           }
         } else {
           mode->button2(hardware.getButtonState(bid));
@@ -83,8 +84,9 @@ void Gravitone::eventLoop()
       case GB3:
         if( modeSwitch ){
           if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
-            hardware.display.clearDisplay();
-            setActiveMode( (activeMode + 1) % numModes );
+            if( activeMode == 0 ) activeMode = numModes - 1;
+            else activeMode --;
+            setActiveMode( activeMode );
           }
         } else {
           mode->button3(hardware.getButtonState(bid));
