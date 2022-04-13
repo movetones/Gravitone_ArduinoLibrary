@@ -28,7 +28,7 @@ public:
   int activeWaveform;
   bool playing;
   bool continuous;
-  int note;
+  int note, note2;
   float freq, freq2;
   bool toneWarp, octPlay, octWarp;
   int octaveShift;

@@ -41,8 +41,8 @@ bool GravitoneHardware::begin()
     display.display();
   }
   
-  buttonUpdateInterval = 50;
-  displayUpdateInterval = 175;
+  buttonUpdateInterval = 20;
+  displayUpdateInterval = 200;
   batteryUpdateInterval = 5000;
   
   Serial1.begin(115200);
@@ -337,23 +337,28 @@ bool GravitoneHardware::updateOrientation()
       q3 = ((double)data.Quat9.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
       q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
-      // Convert the quaternions to Euler angles (roll, pitch, yaw)
-      // https://en.wikipedia.org/w/index.php?title=Conversion_between_quaternions_and_Euler_angles&section=8#Source_code_2
-
+      // Use quaternion to transform a unit vector pointing out of the front of the device 
+      // https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Advantages_of_quaternions
+      
       Geometry::Quaternion quat( q1, q2, q3, q0);
       //Geometry::Quaternion quatConj( -1.0*q1, -1.0*q2, -1.0*q3, q0);
 
       BLA::Matrix<3,3> rot = quat.to_rotation_matrix();
       
-      pointer = rot * origin;
+      // find the axes representing the rotated reference frame
+      xPointer = rot * xOrigin; 
+      yPointer = rot * yOrigin; 
+      zPointer = rot * zOrigin; 
       
       // convert to spherical coordinates
-      double r = sqrt( pointer(0) * pointer(0) + pointer(1) * pointer(1) + pointer(2) * pointer(2));
-      double theta = atan2(sqrt(pointer(0) * pointer(0) + pointer(1) * pointer(1)),  pointer(2));
-      double phi = atan2(pointer(1), pointer(0) );
+      double pitchTheta = atan2(sqrt(yPointer(0) * yPointer(0) + yPointer(1) * yPointer(1)),  yPointer(2));
+      double rollTheta  = atan2(sqrt(xPointer(0) * xPointer(0) + xPointer(1) * xPointer(1)),  xPointer(2));
+      double phi = atan2(yPointer(1), yPointer(0) );
 
-      // convert to degrees
-      pitch = theta * 57.2958;
+      // euler angles with no singularities!
+      heading = phi * 57.2958;
+      pitch   = pitchTheta * 57.2958;
+      roll    = rollTheta * 57.2958;
     
       /*double q2sqr = q2 * q2;
 
@@ -372,14 +377,14 @@ bool GravitoneHardware::updateOrientation()
       double t3 = +2.0 * (q0 * q3 + q1 * q2);
       double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
       yaw = atan2(t3, t4) * 180.0 / PI;
-      */
       
-      /*SERIAL_PORT.print(F("Roll:"));
+      
+      SERIAL_PORT.print(F("Roll:"));
       SERIAL_PORT.print(roll, 1);
       SERIAL_PORT.print(F(" Pitch:"));
       SERIAL_PORT.print(pitch, 1);
       SERIAL_PORT.print(F(" Yaw:"));
-      SERIAL_PORT.println(yaw, 1);*/
+      SERIAL_PORT.println(heading, 1);*/
       
       
       // Output the Quaternion data in the format expected by ZaneL's Node.js Quaternion animation tool

@@ -37,17 +37,24 @@ public:
                         lastImuUpdate(0),
                         inactivityTimer(0),
                         handleEsp(true),
+                        heading(0),
+                        pitch(0),
+                        roll(0),
                         ax(0),ay(0),az(0),
                         gx(0),gy(0),gz(0),
                         mx(0),my(0),mz(0) {
-    //pointer(0) = 0.0;
-    pointer(0) = 0.0;
-    pointer(1) = 0.0;
-    pointer(2) = 0.0;
+
+    xOrigin(0) = 1.0;
+    xOrigin(1) = 0.0;
+    xOrigin(2) = 0.0;
     
-    origin(0) = 0.0;
-    origin(1) = -1.0;
-    origin(2) = 0.0;
+    yOrigin(0) = 0.0;
+    yOrigin(1) = -1.0;
+    yOrigin(2) = 0.0;
+    
+    zOrigin(0) = 0.0;
+    zOrigin(1) = 0.0;
+    zOrigin(2) = -1.0;
           
   };
   
@@ -63,7 +70,7 @@ public:
   void setAmpState(bool state);
 
   bool updateOrientation();
-  double getYaw() { return yaw; }
+  double getHeading() { return heading; }
   double getPitch() { return pitch; }
   double getRoll() { return roll; }
   double getQ0() { return q0; }
@@ -98,10 +105,12 @@ private:
   void imuSleep();
   void imuWake();
   
-  BLA::Matrix<3> pointer, origin;
+  BLA::Matrix<3> xPointer, yPointer, 
+                 zPointer, xOrigin, 
+                 yOrigin, zOrigin;
   bool ampState;
   bool handleEsp;
-  double yaw, pitch, roll;
+  double heading, pitch, roll;
   double q0, q1, q2, q3;
   double ax,ay,az,gx,gy,gz,mx,my,mz;
   unsigned long lastImuUpdate, lastDisplayUpdate, lastBatteryUpdate, lastButtonUpdate;
