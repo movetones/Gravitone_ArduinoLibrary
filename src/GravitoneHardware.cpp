@@ -178,7 +178,8 @@ bool GravitoneHardware::initImu()
 
   // Enable any additional sensors / features
   //success &= (myICM.enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
-  //success &= (myICM.enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
+  success &= (myICM.enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
+  //success &= (myICM.enableDMPSensor(INV_ICM20948_SENSOR_ACCELEROMETER) == ICM_20948_Stat_Ok);
   //success &= (myICM.enableDMPSensor(INV_ICM20948_SENSOR_MAGNETIC_FIELD_UNCALIBRATED) == ICM_20948_Stat_Ok);
 
 
@@ -187,6 +188,8 @@ bool GravitoneHardware::initImu()
   // Setting value can be calculated as follows:
   // Value = (DMP running rate / ODR ) - 1
   // E.g. For a 5Hz ODR rate when DMP is running at 55Hz, value = (55/5) - 1 = 10.
+  //success &= (myICM.setDMPODRrate(DMP_ODR_Reg_Quat6, 0) == ICM_20948_Stat_Ok); // Set to 225Hz
+  success &= (myICM.setDMPODRrate(DMP_ODR_Reg_Accel, 0) == ICM_20948_Stat_Ok); // Set to 225Hz
   success &= (myICM.setDMPODRrate(DMP_ODR_Reg_Quat9, 0) == ICM_20948_Stat_Ok); // Set to the maximum
   //success &= (myICM.setDMPODRrate(DMP_ODR_Reg_Quat6, 0) == ICM_20948_Stat_Ok); // Set to the maximum
   //success &= (myICM.setDMPODRrate(DMP_ODR_Reg_Accel, 0) == ICM_20948_Stat_Ok); // Set to the maximum
@@ -205,15 +208,23 @@ bool GravitoneHardware::initImu()
   const unsigned char b2sMountMultiplierZero[4] = {0x00, 0x00, 0x00, 0x00};
   const unsigned char b2sMountMultiplierPlus[4] = {0x40, 0x00, 0x00, 0x00}; // Value taken from InvenSense Nucleo example
   const unsigned char b2sMountMultiplierMinus[4] = {0xF6, 0x66, 0x66, 0x67};
+
+  const unsigned char allOnes[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+  
+  result = myICM.writeDMPmems(B2S_RATE, 4, &allOnes[0]); if (result > worstResult) worstResult = result;
+
   result = myICM.writeDMPmems(B2S_MTX_00, 4, &b2sMountMultiplierPlus[0]); if (result > worstResult) worstResult = result;
-  result = myICM.writeDMPmems(B2S_MTX_01, 4, &b2sMountMultiplierMinus[0]); if (result > worstResult) worstResult = result;
-  result = myICM.writeDMPmems(B2S_MTX_02, 4, &b2sMountMultiplierMinus[0]); if (result > worstResult) worstResult = result;
+  result = myICM.writeDMPmems(B2S_MTX_01, 4, &b2sMountMultiplierZero[0]); if (result > worstResult) worstResult = result;
+  result = myICM.writeDMPmems(B2S_MTX_02, 4, &b2sMountMultiplierZero[0]); if (result > worstResult) worstResult = result;
   result = myICM.writeDMPmems(B2S_MTX_10, 4, &b2sMountMultiplierZero[0]); if (result > worstResult) worstResult = result;
-  result = myICM.writeDMPmems(B2S_MTX_11, 4, &b2sMountMultiplierPlus[0]); if (result > worstResult) worstResult = result;
-  result = myICM.writeDMPmems(B2S_MTX_12, 4, &b2sMountMultiplierMinus[0]); if (result > worstResult) worstResult = result;
+  result = myICM.writeDMPmems(B2S_MTX_11, 4, &b2sMountMultiplierMinus[0]); if (result > worstResult) worstResult = result;
+  result = myICM.writeDMPmems(B2S_MTX_12, 4, &b2sMountMultiplierZero[0]); if (result > worstResult) worstResult = result;
   result = myICM.writeDMPmems(B2S_MTX_20, 4, &b2sMountMultiplierZero[0]); if (result > worstResult) worstResult = result;
   result = myICM.writeDMPmems(B2S_MTX_21, 4, &b2sMountMultiplierZero[0]); if (result > worstResult) worstResult = result;
-  result = myICM.writeDMPmems(B2S_MTX_22, 4, &b2sMountMultiplierPlus[0]); if (result > worstResult) worstResult = result;
+  result = myICM.writeDMPmems(B2S_MTX_22, 4, &b2sMountMultiplierMinus[0]); if (result > worstResult) worstResult = result;
+
+
+
   /*mmerr = myICM.writeDMPmems(B2S_MTX_00, 4, (const unsigned char *)&m0[0]); 
   mmerr = myICM.writeDMPmems(B2S_MTX_01, 4, (const unsigned char *)&m0[1]);
   mmerr = myICM.writeDMPmems(B2S_MTX_02, 4, (const unsigned char *)&m0[2]);
@@ -242,9 +253,7 @@ bool GravitoneHardware::initImu()
   // Check success
   if (success)
   {
-#ifndef QUAT_ANIMATION
     SERIAL_PORT.println(F("DMP enabled!"));
-#endif
   }
   else
   {
@@ -285,6 +294,7 @@ bool GravitoneHardware::updateOrientation()
 
       q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
+      /*
       double q2sqr = q2 * q2;
 
       // roll (x-axis rotation)
@@ -303,7 +313,9 @@ bool GravitoneHardware::updateOrientation()
       double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
       yaw = atan2(t3, t4) * 180.0 / PI;
 
-      /*SERIAL_PORT.print(F("Roll:"));
+      */
+
+      /*SERIAL_PORT.print(F("Q6 Roll:"));
       SERIAL_PORT.print(roll, 1);
       SERIAL_PORT.print(F(" Pitch:"));
       SERIAL_PORT.print(pitch, 1);
@@ -328,7 +340,22 @@ bool GravitoneHardware::updateOrientation()
       // Convert the quaternions to Euler angles (roll, pitch, yaw)
       // https://en.wikipedia.org/w/index.php?title=Conversion_between_quaternions_and_Euler_angles&section=8#Source_code_2
 
-      double q2sqr = q2 * q2;
+      Geometry::Quaternion quat( q1, q2, q3, q0);
+      //Geometry::Quaternion quatConj( -1.0*q1, -1.0*q2, -1.0*q3, q0);
+
+      BLA::Matrix<3,3> rot = quat.to_rotation_matrix();
+      
+      pointer = rot * origin;
+      
+      // convert to spherical coordinates
+      double r = sqrt( pointer(0) * pointer(0) + pointer(1) * pointer(1) + pointer(2) * pointer(2));
+      double theta = atan2(sqrt(pointer(0) * pointer(0) + pointer(1) * pointer(1)),  pointer(2));
+      double phi = atan2(pointer(1), pointer(0) );
+
+      // convert to degrees
+      pitch = theta * 57.2958;
+    
+      /*double q2sqr = q2 * q2;
 
       // roll (x-axis rotation)
       double t0 = +2.0 * (q0 * q1 + q2 * q3);
@@ -345,7 +372,7 @@ bool GravitoneHardware::updateOrientation()
       double t3 = +2.0 * (q0 * q3 + q1 * q2);
       double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
       yaw = atan2(t3, t4) * 180.0 / PI;
-      
+      */
       
       /*SERIAL_PORT.print(F("Roll:"));
       SERIAL_PORT.print(roll, 1);
@@ -353,6 +380,55 @@ bool GravitoneHardware::updateOrientation()
       SERIAL_PORT.print(pitch, 1);
       SERIAL_PORT.print(F(" Yaw:"));
       SERIAL_PORT.println(yaw, 1);*/
+      
+      
+      // Output the Quaternion data in the format expected by ZaneL's Node.js Quaternion animation tool
+      
+      /*SERIAL_PORT.print(F("{\"quat_w\":"));
+      SERIAL_PORT.print(q0, 3);
+      SERIAL_PORT.print(F(", \"quat_x\":"));
+      SERIAL_PORT.print(q1, 3);
+      SERIAL_PORT.print(F(", \"quat_y\":"));
+      SERIAL_PORT.print(q2, 3);
+      SERIAL_PORT.print(F(", \"quat_z\":"));
+      SERIAL_PORT.print(q3, 3);
+      SERIAL_PORT.println(F("}"));
+      
+      SERIAL_PORT.print(F("{\"x\":"));
+      SERIAL_PORT.print(pointer(0), 3);
+      SERIAL_PORT.print(F(", \"y\":"));
+      SERIAL_PORT.print(pointer(1), 3);
+      SERIAL_PORT.print(F(", \"z\":"));
+      SERIAL_PORT.print(pointer(2), 3);
+      SERIAL_PORT.println(F("}"));
+      
+      SERIAL_PORT.print(F("{\"r\":"));
+      SERIAL_PORT.print(r, 3);
+      SERIAL_PORT.print(F(", \"theta\":"));
+      SERIAL_PORT.print(theta, 3);
+      SERIAL_PORT.print(F(", \"phi\":"));
+      SERIAL_PORT.print(phi, 3);
+      SERIAL_PORT.println(F("}"));*/
+      
+      
+      
+      
+    }
+     if ((data.header & DMP_header_bitmap_Accel) > 0) // We have asked raw accel
+    {
+      // get the raw acclerometer values out of the DMP buffer
+      
+      // Scale to +/- 1
+      ax = (double)data.Raw_Accel.Data.X / 32767.0; // Convert to double. Divide by 2^30
+      ay = (double)data.Raw_Accel.Data.Y / 32767.0; // Convert to double. Divide by 2^30
+      az = (double)data.Raw_Accel.Data.Z / 32767.0; // Convert to double. Divide by 2^30
+      
+      
+      /*SERIAL_PORT.print(ax);
+      SERIAL_PORT.print(F(", "));
+      SERIAL_PORT.print(ay, 1);
+      SERIAL_PORT.print(F(", "));
+      SERIAL_PORT.println(az, 1);*/
       
       
       // Output the Quaternion data in the format expected by ZaneL's Node.js Quaternion animation tool
@@ -368,10 +444,11 @@ bool GravitoneHardware::updateOrientation()
       SERIAL_PORT.println(F("}"));
       */
       
-      return true;
-    }
-  } 
-  return false;
+    } 
+    return true;
+  } else {
+    return false;
+  }
 } 
  
 /********************************************************************************************
@@ -469,6 +546,16 @@ bool GravitoneHardware::buttonsAvailable()
     if( buttonStatesChanged[i] ) return true;
   }
   return false;
+}
+
+/********************************************************************************************
+ *
+ *
+ *******************************************************************************************/
+bool GravitoneHardware::buttonsAvailable(int i)
+{
+  if( buttonStatesChanged[i] ) return true;
+  else return false;
 }
 
 

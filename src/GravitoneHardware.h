@@ -1,3 +1,13 @@
+/*
+GravitoneHardware.h
+
+Matt Ruffner 2022
+MoveTones, LLC
+
+
+
+*/
+
 #ifndef GRAVITONE_HARDWARE_H
 #define GRAVITONE_HARDWARE_H
 
@@ -5,6 +15,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_MCP23017.h>
+#include <Geometry.h>
 #include <Audio.h>
 
 #include "config.h"
@@ -25,7 +36,18 @@ public:
                         lastButtonUpdate(0),
                         lastImuUpdate(0),
                         inactivityTimer(0),
-                        handleEsp(true) {
+                        handleEsp(true),
+                        ax(0),ay(0),az(0),
+                        gx(0),gy(0),gz(0),
+                        mx(0),my(0),mz(0) {
+    //pointer(0) = 0.0;
+    pointer(0) = 0.0;
+    pointer(1) = 0.0;
+    pointer(2) = 0.0;
+    
+    origin(0) = 0.0;
+    origin(1) = -1.0;
+    origin(2) = 0.0;
           
   };
   
@@ -48,8 +70,12 @@ public:
   double getQ1() { return q1; }
   double getQ2() { return q2; }
   double getQ3() { return q3; }
+  double getAx() { return ax; }
+  double getAy() { return ax; }
+  double getAz() { return ax; }
 
   bool buttonsAvailable();
+  bool buttonsAvailable(int i);
   int lastButtonPress();
   int getButtonState(int id) { return buttonStates[id]; }
   uint8_t* getButtonStates() { return buttonStates; }
@@ -72,6 +98,7 @@ private:
   void imuSleep();
   void imuWake();
   
+  BLA::Matrix<3> pointer, origin;
   bool ampState;
   bool handleEsp;
   double yaw, pitch, roll;

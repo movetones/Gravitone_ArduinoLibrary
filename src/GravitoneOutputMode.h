@@ -9,13 +9,11 @@ public:
   ~GravitoneOutputMode() {  };
   
   void begin() {
-    addPatch( new AudioConnection(amp1, fade1) );
-    addPatch( new AudioConnection(fade1, 0, hardware->i2s1, 0) );
-    addPatch( new AudioConnection(fade1, 0, hardware->i2s1, 1) );
+    addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 0) );
+    addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 1) );
   }
 
   void start() {
-    fade1.fadeOut(500);
     hardware->enableAmp();
     drawVolume();
     setVolume();
@@ -46,9 +44,7 @@ public:
   void setVolume(int lvl); // 0 through 4 
   void setVolume(); // uses member var
 
-  
   AudioAmplifier           amp1;           //xy=323,403
-  AudioEffectFade          fade1;          //xy=492,402
   
   int volume;                  
 };

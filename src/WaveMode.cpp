@@ -6,14 +6,26 @@ WaveMode::WaveMode() {
   activeWaveform = WAVEFORM_SINE;
   playing = false;
   continuous = false;
+  toneWarp = false;
+  octPlay = false;
+  octWarp = false;
   octaveShift = 0;
   note = 440;
   int note = 5;
   scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 1);
-  Serial.println("created scale");
-  waveform1.begin(0.8, 220, activeWaveform);
-  addPatch( new AudioConnection(waveform1, amp1) );
-  Serial.println("done with WaveMode constuctor");
+  //Serial.println("created scale");
+  mixer1.gain(0, 1);
+  mixer1.gain(1, 1);
+  fade1.fadeOut(200);
+  fade2.fadeOut(200);
+  waveform1.begin(0.9, 440, activeWaveform);
+  waveform2.begin(0.9, 220, activeWaveform);
+  addPatch( new AudioConnection(waveform1, fade1) );
+  addPatch( new AudioConnection(waveform2, fade2) );
+  addPatch( new AudioConnection(fade1, 0, mixer1, 0) );
+  addPatch( new AudioConnection(fade2, 0, mixer1, 1) );
+  addPatch( new AudioConnection(mixer1, 0, amp1, 0) );
+  //Serial.println("done with WaveMode constuctor");
 };
 
 WaveMode::~WaveMode() {
@@ -29,12 +41,13 @@ void WaveMode::start()
 {
   GravitoneOutputMode::start();
 
-  waveform1.amplitude(0.8);
+  waveform1.amplitude(0.9);
+  waveform2.amplitude(0.7);
   
-  Serial.print("end of WaveMode start(), numPatches is ");
-  Serial.println(numPatches);
-  Serial.print(" address of scale is 0x");
-  Serial.println((unsigned long)scale, HEX);
+//  Serial.print("end of WaveMode start(), numPatches is ");
+//  Serial.println(numPatches);
+//  Serial.print(" address of scale is 0x");
+//  Serial.println((unsigned long)scale, HEX);
 };
 
 void WaveMode::stop()
@@ -92,24 +105,58 @@ void WaveMode::onUpdateOrientation()
   double yaw   = hardware->getYaw();
   double pitch = hardware->getPitch();
   double roll  = hardware->getRoll();
+  static unsigned long sampleRateTrackerBuffer[50];
+  double averageSampleRate = 0.0;
+  static uint8_t sampleRateTrackerLoc = 0;
 
-  note = map(pitch, -70, 70, 0, scale->getNoteCount());
-  freq = scale->getNote(note)->freq * pow(2, octaveShift);
+  note = map(pitch, 165, 15, 0, scale->getNoteCount());
+  
+  if( !toneWarp )
+    freq = scale->getNote(note)->freq * pow(2, octaveShift);
+  else
+    freq = scale->getNote(note)->freq * pow(2, hardware->getAx()/4.0 );
+
+  if( !octWarp )
+    freq2 = scale->getNote(note)->freq * pow(2, octaveShift+1);
+  else
+    freq2 = scale->getNote(note)->freq * pow(2, octaveShift+1 + hardware->getAx()/4.0 );
+
+  /*
+  sampleRateTrackerBuffer[ sampleRateTrackerLoc++ ] = millis();
+  if( sampleRateTrackerLoc == 50 ){
+    averageSampleRate = 0.0;
+    for( int i=1; i<20; i++ ){
+      averageSampleRate += ( sampleRateTrackerBuffer[i] - sampleRateTrackerBuffer[i-1] );
+    }
+    averageSampleRate /= 20;
+    averageSampleRate = 1.0 / ((double)averageSampleRate / 1000.0);
+    Serial.print("Average sample rate: ");
+    Serial.print(averageSampleRate);
+    Serial.println(" Hz");
+    sampleRateTrackerLoc = 0;
+  }*/
+  
+
+  
 
   //Serial.print("on update orientation ");
   //Serial.print(millis()); Serial.print(" "); Serial.print(yaw); Serial.print(" "); Serial.print(pitch); Serial.print(" "); Serial.println(roll);
 
   // continuous tone
-  if( continuous )
-    freq = scale->unison.freq*pow(2,(float)(map(pitch, -60, 60, 0, 12))/12.0)*pow(2, octaveShift);
+  if( continuous ){
+    freq  = scale->unison.freq*pow(2,(float)(map(pitch, 165, 15, 0, 12))/12.0)*pow(2, octaveShift);
+    freq2 = scale->unison.freq*pow(2,(float)(map(pitch, 165, 15, 0, 12))/12.0)*pow(2, octaveShift+1);
+  }
   //else 
-   waveform1.frequency(freq);
+  waveform1.frequency(freq);
+  waveform2.frequency(freq2);
 }
 
 void WaveMode::button4(butevent_t event){
   if( event == BUTTON_PRESSED ){
     Serial.println("Button 4 pressed");
     playing = true;
+    toneWarp = false;
     fade1.fadeIn(20);
   } else if( event == BUTTON_RELEASED ){
     playing = false;
@@ -117,10 +164,14 @@ void WaveMode::button4(butevent_t event){
   }  
 }
 
-void WaveMode::button5(butevent_t event) {
+void WaveMode::button9(butevent_t event) {
   if( event == BUTTON_PRESSED ){
-    Serial.println("Button 5 pressed");
-  }
+    Serial.println("Button 9 pressed");
+    toneWarp = true;
+    fade1.fadeIn(20);
+  } else if( event == BUTTON_RELEASED ){
+    fade1.fadeOut(100);
+  }  
 }
 
 void WaveMode::button6(butevent_t event) {
@@ -141,18 +192,25 @@ void WaveMode::button7(butevent_t event) {
 
 void WaveMode::button8(butevent_t event) {
   if( event == BUTTON_PRESSED ){
-    Serial.println("button 8 pressed");
-    scaleTypeIndex = (scaleTypeIndex + 1) % GS_NUM_SCALE_PATTERNS;
-    delete scale;
-    scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
+    // octWarp = true;
+    octPlay = true;
+    octWarp = true;
+    fade2.fadeIn(20);
+  } else if( event == BUTTON_RELEASED) {
+    octWarp = false;
+    //octPlay = false;
+    fade2.fadeOut(100);
   }
 }
 
-void WaveMode::button9(butevent_t event) {
+void WaveMode::button5(butevent_t event) {
   if( event == BUTTON_PRESSED ){
-    Serial.println("Button 9 pressed");
-    activeWaveform = WAVEFORM_TRIANGLE;
-    waveform1.begin(activeWaveform);
+    octPlay = true;
+    octWarp = false;
+    fade2.fadeIn(20);
+  } else if( event == BUTTON_RELEASED ){
+    octPlay = false;
+    fade2.fadeOut(100);
   }
 }
 
@@ -174,8 +232,9 @@ void WaveMode::button11(butevent_t event) {
 
 void WaveMode::button12(butevent_t event) {
   if( event == BUTTON_PRESSED ){
-    Serial.println("Button 12 pressed");
-    activeWaveform = WAVEFORM_SQUARE;
-    waveform1.begin(activeWaveform);
+    Serial.println("button 12 pressed");
+    scaleTypeIndex = (scaleTypeIndex + 1) % GS_NUM_SCALE_PATTERNS;
+    delete scale;
+    scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
   }
 }

@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 #include "GravitoneMode.h"
 
-// {"type":"wificred","ssid":"Team 09","pass":"trashcan"}
 
 class WebsocketDemoMode : public GravitoneMode {
 public:
@@ -47,6 +46,12 @@ public:
       sending = true;
     } else if( event == BUTTON_RELEASED ){
       sending = false;
+    }
+  }
+  
+  void button9(butevent_t event) {
+    if( event == BUTTON_PRESSED ){
+      sending = !sending;
     }
   }
   

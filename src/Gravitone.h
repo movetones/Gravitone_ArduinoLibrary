@@ -39,6 +39,9 @@ public:
   GravitoneMode *modes[MAX_MODES];
   
   GravitoneHardware hardware;
+  
+private:
+  void handleButtons(int bid);
 };
 
 

@@ -29,13 +29,18 @@ public:
   bool playing;
   bool continuous;
   int note;
-  float freq;
+  float freq, freq2;
+  bool toneWarp, octPlay, octWarp;
   int octaveShift;
   uint8_t scaleTypeIndex;  
   uint8_t scaleIndex;
   gs_Scale *scale;
 
   AudioSynthWaveform       waveform1;      //xy=140,403
+  AudioSynthWaveform       waveform2;      //xy=140,403
+  AudioEffectFade          fade1;          //xy=492,402
+  AudioEffectFade          fade2;          //xy=492,402
+  AudioMixer4              mixer1;
 };
 
 
