@@ -1,11 +1,14 @@
+#ifndef SCALEMODE_H
+#define SCALEMODE_H
+
 #include "GravitoneOutputMode.h"
 #include "scale.h"
 
-class WaveMode : public GravitoneOutputMode {
+class ScaleMode : public GravitoneOutputMode {
 public:
 
-  WaveMode();
-  ~WaveMode();
+  ScaleMode();
+  ~ScaleMode();
   
   void start();
   void stop();
@@ -26,17 +29,21 @@ public:
   const char * getName();
   
   int activeWaveform;
-  float freq, freq2, freq3;
-  float baseNote;
+  bool playing;
+  bool continuous;
+  int note, note2;
+  float freq, freq2;
   int octaveShift;
+  bool vibrato1, vibrato2;
+  uint8_t scaleTypeIndex;  
+  uint8_t scaleIndex;
+  gs_Scale *scale;
 
   AudioSynthWaveform       waveform1;      //xy=140,403
   AudioSynthWaveform       waveform2;      //xy=140,403
-  AudioSynthWaveform       waveform3;      //xy=140,403
   AudioEffectFade          fade1;          //xy=492,402
   AudioEffectFade          fade2;          //xy=492,402
-  AudioEffectFade          fade3;          //xy=492,402
   AudioMixer4              mixer1;
 };
 
-
+#endif

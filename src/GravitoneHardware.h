@@ -78,8 +78,8 @@ public:
   double getQ2() { return q2; }
   double getQ3() { return q3; }
   double getAx() { return ax; }
-  double getAy() { return ax; }
-  double getAz() { return ax; }
+  double getAy() { return ay; }
+  double getAz() { return az; }
 
   bool buttonsAvailable();
   bool buttonsAvailable(int i);
