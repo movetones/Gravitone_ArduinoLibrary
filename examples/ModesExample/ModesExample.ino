@@ -1,14 +1,13 @@
 #include <Gravitone.h>
 #include <WaveMode.h>
-#include <SerialPassthroughMode.h>
-#include <WebsocketDemoMode.h>
+#include <ScaleMode.h>
 
 Gravitone g;
 
 void setup() {
   // put your setup code here, to run once:
 
-  AudioMemory(20);
+  AudioMemory(50);
   Wire.begin();
   Wire.setClock(800000);
 
@@ -17,16 +16,11 @@ void setup() {
 
   g.begin();
 
-  WaveMode *waveMode1 = new WaveMode();
-  WaveMode *waveMode2 = new WaveMode();
-  SerialPassthroughMode *espMode = new SerialPassthroughMode();
-  WebsocketDemoMode *wsMode = new WebsocketDemoMode();
+  ScaleMode *scaleMode = new ScaleMode();
+  WaveMode *waveMode = new WaveMode();
   
-  
-  g.addMode(waveMode1);
-  g.addMode(waveMode2);
-  g.addMode(espMode);
-  g.addMode(wsMode);
+  g.addMode(scaleMode);
+  g.addMode(waveMode);
   
   g.setActiveMode(0);
   
