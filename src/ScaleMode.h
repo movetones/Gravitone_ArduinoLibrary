@@ -22,70 +22,52 @@
  */
 
 
-#ifndef VOLUME_H
-#define VOLUME_H
+#ifndef SCALEMODE_H
+#define SCALEMODE_H
 
+#include "GravitoneOutputMode.h"
+#include "scale.h"
 
-static unsigned char PROGMEM drawable_8x8_volume_mute[] =
-{ B10000001,
-  B01000010,
-  B00100100,
-  B00011000,
-  B00011000,
-  B00100100,
-  B01000010,
-  B10000001 };
+class ScaleMode : public GravitoneOutputMode {
+public:
 
-static unsigned char PROGMEM drawable_8x8_volume_25[] =
-{ B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B11000000,
-  B11111111 };
+  ScaleMode();
+  ~ScaleMode();
+  
+  void start();
+  void stop();
+  
+  void button4(butevent_t event);
+  void button5(butevent_t event);
+  void button6(butevent_t event);
+  void button7(butevent_t event);
+  void button8(butevent_t event);
+  void button9(butevent_t event);
+  void button10(butevent_t event);
+  void button11(butevent_t event);
+  void button12(butevent_t event);
+  
+  void onUpdateOrientation();
+  void onUpdateDisplay();
 
-static unsigned char PROGMEM drawable_8x8_volume_50[] =
-{ B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00110000,
-  B00110000,
-  B11110000,
-  B11111111 };
+  const char * getName();
+  
+  int activeWaveform;
+  bool playing;
+  bool continuous;
+  int note, note2;
+  float freq, freq2;
+  int octaveShift;
+  bool vibrato1, vibrato2;
+  uint8_t scaleTypeIndex;  
+  uint8_t scaleIndex;
+  gs_Scale *scale;
 
-static unsigned char PROGMEM drawable_8x8_volume_75[] =
-{ B00000000,
-  B00000000,
-  B00001100,
-  B00001100,
-  B00111100,
-  B00111100,
-  B11111100,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_100[] =
-{ B00000011,
-  B00000011,
-  B00001111,
-  B00001111,
-  B00111111,
-  B00111111,
-  B11111111,
-  B11111111 };
-
-static uint8_t* getDrawableForVolumeLevel(uint8_t lvl)
-{
-  switch ( lvl ) {
-    case 0: return drawable_8x8_volume_mute; break;
-    case 1: return drawable_8x8_volume_25; break;
-    case 2: return drawable_8x8_volume_50; break;
-    case 3: return drawable_8x8_volume_75; break;
-    case 4: return drawable_8x8_volume_100; break;
-  }
-}
-
+  AudioSynthWaveform       waveform1;      //xy=140,403
+  AudioSynthWaveform       waveform2;      //xy=140,403
+  AudioEffectFade          fade1;          //xy=492,402
+  AudioEffectFade          fade2;          //xy=492,402
+  AudioMixer4              mixer1;
+};
 
 #endif

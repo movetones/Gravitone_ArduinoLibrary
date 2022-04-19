@@ -22,70 +22,35 @@
  */
 
 
-#ifndef VOLUME_H
-#define VOLUME_H
+#ifndef GRAVITONE_BUTTON_INTERFACE
+#define GRAVITONE_BUTTON_INTERFACE
+
+// BUTTON CONNECTIONS w.r.t. TO MCP23017
+enum ButtonMap {
+    GB1,
+    GB2,
+    GB3,
+    GB4,
+    GB5,
+    GB6,
+    GB7,
+    GB8,
+    GB9,
+    GB10,
+    GB11,
+    GB12
+};
+
+#define NUM_BUTTONS   12
 
 
-static unsigned char PROGMEM drawable_8x8_volume_mute[] =
-{ B10000001,
-  B01000010,
-  B00100100,
-  B00011000,
-  B00011000,
-  B00100100,
-  B01000010,
-  B10000001 };
+typedef uint8_t butevent_t;
 
-static unsigned char PROGMEM drawable_8x8_volume_25[] =
-{ B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B11000000,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_50[] =
-{ B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00110000,
-  B00110000,
-  B11110000,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_75[] =
-{ B00000000,
-  B00000000,
-  B00001100,
-  B00001100,
-  B00111100,
-  B00111100,
-  B11111100,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_100[] =
-{ B00000011,
-  B00000011,
-  B00001111,
-  B00001111,
-  B00111111,
-  B00111111,
-  B11111111,
-  B11111111 };
-
-static uint8_t* getDrawableForVolumeLevel(uint8_t lvl)
-{
-  switch ( lvl ) {
-    case 0: return drawable_8x8_volume_mute; break;
-    case 1: return drawable_8x8_volume_25; break;
-    case 2: return drawable_8x8_volume_50; break;
-    case 3: return drawable_8x8_volume_75; break;
-    case 4: return drawable_8x8_volume_100; break;
-  }
-}
-
+enum ButtonEvent {
+  BUTTON_OPEN=8,
+  BUTTON_PRESSED=9,  // this is a user pressing the button
+  BUTTON_RELEASED=10, // this is the user releasing the button
+  BUTTON_HELD=11      // the button has been held down
+};
 
 #endif

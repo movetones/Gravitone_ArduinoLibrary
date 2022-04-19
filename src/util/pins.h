@@ -22,70 +22,17 @@
  */
 
 
-#ifndef VOLUME_H
-#define VOLUME_H
+// PIN DEFINITIONS FOR GRAVITONE V1.5 PCB
+// CONNECTED TO A TEENSY 3.2
+#define MCP23017_INTA	8  // MCP -> ARDUINO
+#define MCP23017_INTB	7  // MCP -> ARDUINO
+#define MAX98357_MODE	11 // LOW DISABLES, HIGH-Z ENABLES AUDIO AMP
+#define OLED_CONTROL	12 // ACTIVE HIGH
+#define BATTERY_SENSE	21 // ANALOG
+#define BATTERY_STAT	20 // HIGH = CHARGING
+#define ICM20948_INT	13 // ICM -> ARDUINO
+#define ICM20948_SYNC	14 // ARDUINO -> ICM
 
-
-static unsigned char PROGMEM drawable_8x8_volume_mute[] =
-{ B10000001,
-  B01000010,
-  B00100100,
-  B00011000,
-  B00011000,
-  B00100100,
-  B01000010,
-  B10000001 };
-
-static unsigned char PROGMEM drawable_8x8_volume_25[] =
-{ B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B11000000,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_50[] =
-{ B00000000,
-  B00000000,
-  B00000000,
-  B00000000,
-  B00110000,
-  B00110000,
-  B11110000,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_75[] =
-{ B00000000,
-  B00000000,
-  B00001100,
-  B00001100,
-  B00111100,
-  B00111100,
-  B11111100,
-  B11111111 };
-
-static unsigned char PROGMEM drawable_8x8_volume_100[] =
-{ B00000011,
-  B00000011,
-  B00001111,
-  B00001111,
-  B00111111,
-  B00111111,
-  B11111111,
-  B11111111 };
-
-static uint8_t* getDrawableForVolumeLevel(uint8_t lvl)
-{
-  switch ( lvl ) {
-    case 0: return drawable_8x8_volume_mute; break;
-    case 1: return drawable_8x8_volume_25; break;
-    case 2: return drawable_8x8_volume_50; break;
-    case 3: return drawable_8x8_volume_75; break;
-    case 4: return drawable_8x8_volume_100; break;
-  }
-}
-
-
-#endif
+#define ESP_GPIO0 2
+#define ESP_RST   3
+#define ESP_EN    4

@@ -1,83 +1,108 @@
 # Gravitone_ArduinoLibrary
-Arduino library for the Gravitone spatial synthesizer kit
 
-So you have a Gravitone, and now you want to play with the software. Read along below to get the necessary development environment and dependencies setup and installed. 
+Support code and examples for the Gravitone.
 
-This repository is a WIP and will be updated continually to improve the user experience and flexibility of developing with the Gravitone. 
-
-Planned work on the library includes:
-- general improvement and adherence to OOP principles
-- development of a Gravitone class to contain subsystem update timestamps
-- GravitoneMode class to contain UI params such as button functionality and menu display
-- encapsulation of IMU reading and orientation filtering
-- button functionality improvement with user defined callback functions
-- incorporation of a navigable menu system to change button mappings
-- possibly dynamically creating AudioStream objects for reconfiguration of Audio library configuration on the fly.
-
-## Installation
-This section describes installing the IDE and libraries needed to build the Gravitone library. If you already have these setup, proceed to installing libraries.
-### Installing Arduino and TeensyDuino
-- Install a distribution of the [Arduino Development Environment](https://www.arduino.cc/en/Main/Software) (1.8.12 is a good version for compatibility with TeensyDuino
-- Install TeensyDuino, from PJRC, for your OS. (https://www.pjrc.com/teensy/teensyduino.html) When prompted which libraries to install during the TeensyDuino installation, choose ALL.
-
-### Installing Libraries
-In the Arduino IDE menu, choose Sketch -> Include Library -> Manage Libraries, then search for and install the following libraries:
- 
-- MadgwickAHRS
-- Adafruit_GFX
-- Adafruit_SSD1306
-- Adafruit-MCP23017-Arduino-Library
-- Sparkfun ICM-20948 Library
- 
-### Install the Gravitone_ArduinoLibrary
- Download this repository as a ```.zip``` file and import to the Arduino IDE using Sketch -> Include Library -> Import .zip Library
-
-## Using the Teensy Audio Library
-If you are not already familiar with it, the Teensy Audio library is an amazing collection of software written by Paul Stoffregen and other community contributers. There is GUI tool to design and route audio systems [here](https://www.pjrc.com/teensy/gui/). It is worth noting that the speaker on the Gravitone is powered by a MAX98357A I2S amplifier, so on all valid audio system designs for the Gravitone, there must be an I2S output endpoint.
-
-## Button Mapping
-The Gravitone uses an I2C GPIO expander to access buttons. Button indices are assigned by referencing the following diagram and ```enum ``` in ```src/GravitoneButton.h```.
-<img src='images/mcp23017pins.png' width='75%'/>
-
-``` c
-// BUTTON CONNECTIONS w.r.t. TO MCP23017
-enum GravitoneButton {
-    GPIN_A0,
-    GPIN_A1,
-    GPIN_A2,
-    GPIN_A3,
-    GPIN_A4,
-    GPIN_A5,
-    GPIN_B0,
-    GPIN_A7,
-    GPIN_A6,
-    GPIN_B3,
-    GPIN_B2,
-    GPIN_B1
-};
-```
-
-A numbered diagram labeling physical buttons to this enumeration is shown below in the section about the Theremin example.
-
-## Examples
-Examples are accessible throught the Arduino Examples menu and showcase several different uses of the Gravitone.
+![example workflow](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/main.yml/badge.svg)
 
 
-### Theremin
+## Quick start
 
-A video description of this example, which offers the ability to play multiple types of scales in different keys, along with different wave types, is available at [https://youtu.be/qHYnYlFuf40](https://youtu.be/qHYnYlFuf40). The audio connection diagram and button description for this example are shown below.
+If you want to start making sounds with the Gravitone immediately, follow these steps.
+
+- Install the Arduino IDE https://www.arduino.cc/en/software
+- Install Teensyduino https://www.pjrc.com/teensy/td_download.html
+- Install the Gravitone_ArduinoLibrary library. The easiest way is through the built in library manager. Go to the Sketch menu, then Include Library then Manage libraries. More information here: https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries
+
+- ***IMPORTANT***: you must edit a source file in the Sparkfun ICM-20948 IMU library (```ICM_20948_C.h```) in order to fully enable high accuracy motion tracking. More information on this process here: https://github.com/sparkfun/SparkFun_ICM-20948_ArduinoLibrary/blob/main/DMP.md#is-dmp-support-enabled-by-default
+
+- Now open the Modes Example. Go to File -> Examples -> Gravitone_ArduinoLibrary -> ModesExample
+- Plug the Gravitone into the computer and turn it on
+- Click Upload
 
 
-<img src='images/theremin-audio-setup.png' width='100%'/>
+
+## Buttons and control
+
+This section explains the button functionality for the two modes used in the ModesExample mentioned above.
+
+### Power on calibration
+When you turn on the Gravitone, it is best to hold buttons down until it makes a beep after fully booting up.
+
+The two default output modes are scale mode and wave mode, both of which are "output modes". This means they both use buttons 2 and 3 for volume control, unless you hold button 1 which then acts as a mode switch
+
+<img src='images/button-mapping.png'/>
+
+On all example output modes, buttons 1 through 3 have the following functionality:
+
+1: Mode switch
+
+2: Volume down
+
+3: Volume up
+
+## Modes
+The two default modes are scale mode and wave mode which both offer an entertaining variety of features. 
+
+To switch modes, hold down button 1 and press button 2 or 3. When button 1 is pressed buttons 2 and 3 have the following functionality:
+
+2: Previous mode
+
+3: Next mode
 
 
-<img src='images/theremin-button-description.png' width='66%'/>
+### Scale mode
+Scale mode offers a variety of 
+
+4: Play a note based on the **pitch** of the device
+
+5: Play a note based on the **roll** of the device
+
+6: Play both notes controlled by **pitch** and **roll** 
+
+7: Toggle between fretless and fretted scales
+
+8: Play vibrato applied to the note based on **roll**
+
+9: Play vibrato applied to the note based on **pitch**
+
+10: Change scale type (Blues, major, minor, etc.)
+
+11: Change key (G, D, A, etc)
+
+12: Switch between a sine and sawtooth waveform
 
 
-### Guitar
- Currently there is one example, the Guitar example. This demo project has code for reading the IMU and converting the orientation into notes of a scale, as well as some basic UI features for battery and volume. The 3x3 button pad in this example is mapped to chords. 
- 
- 
-Lets look at the audio system design layout for the Guitar example.
-<img src='images/guitar_audio_setup.png' width='100%'/>
-This uses individual string synthesis objects and assigns them the corresponding note frequency of a single note of a guitar chord, the triggers each of the successively to create a guitar strum. This example uses code and ideas from the Teensy Audio libraries guitar example.
+### Wave mode
+4: Play a waveform whos frequency is mapped to the **pitch** of the device
+
+5: Play a waveform whos frequency is mapped to the **roll** of the device
+
+6: Play a waveform whos frequency is mapped to the **heading** of the device
+
+7: Play a waveform whos frequency is mapped to the **pitch** and **heading** of the device
+
+8: Play a waveform whos frequency is mapped to the **roll** and **heading** of the device
+
+9: Play a waveform whos frequency is mapped to the **pitch** and **roll** of the device
+
+10: Switch between sine and sawtooth waveforms
+
+11: Sets the tone of the mode. Aim the Gravitone towards the floor and press this button to lower the overall pitch of all the oscillators.
+
+12: Play all three waveforms at once
+
+
+## Hardware details
+Below is a block diagram of the hardware of the Gravitone. 
+
+<img src="images/block-diagram.png"/>
+
+
+## Library architecture and driver design
+This section outlines the design of the library and the how to create modes and use the **GravitoneHardware** driver to access buttons and IMU data from the Gravitone's sensors.
+
+The purpose of the the **GravitoneHardware** driver is to abstract away all of the details of this block diagram and give the end user and easy way to access device functionality.
+
+
+#### The Teensy Audio Library
+The Teensy Audio library is an amazing collection of software written by Paul Stoffregen and other community contributors. There is GUI tool to design and route audio systems https://www.pjrc.com/teensy/gui/. 
