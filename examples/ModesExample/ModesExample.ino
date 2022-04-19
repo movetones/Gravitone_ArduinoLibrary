@@ -1,3 +1,13 @@
+/*
+ * Modes example for the Gravitone
+ * 
+ * This examples shows the steps necessary to create several 
+ * modes and install them to the Gravitone object.
+ * 
+ * Matt Ruffner 2022
+ * MoveTones, LLC
+ */
+
 #include <Gravitone.h>
 #include <WaveMode.h>
 #include <ScaleMode.h>

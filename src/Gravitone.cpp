@@ -1,19 +1,45 @@
+/* Gravitone Library
+ * Copyright (c) 2022, Matt Ruffner <matthew.ruffner@movetones.com>
+ * MoveTones, LLC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice, development funding notice, and this permission
+ * notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+/** @file Gravitone.cpp
+ *
+ */
+
 #include "Gravitone.h"
-//#include "util/chords.h"
-//#include "util/volume.h"
-//#include "util/battery.h"
 
-
+/** @brief call to initialize the gravitone
+ */
 bool Gravitone::begin()
 {
   return hardware.begin();
 }
 
 
-/********************************************************************************************
- *
- *
- *******************************************************************************************/
+/**
+ * @brief Gravitone::setActiveMode
+ * @param id
+ */
 void Gravitone::setActiveMode(int id) {
   if( activeMode >= 0 ){ // if there is a mode started
     Serial.print("stopping mode ");
@@ -21,7 +47,7 @@ void Gravitone::setActiveMode(int id) {
     mode->stop();
   }
 
-  if( numModes > 0  && id >= 0 && id < numModes ){\
+  if( numModes > 0  && id >= 0 && id < numModes ){
     Serial.print("Setting activeMode to "); Serial.println(id);
     activeMode = id;
     mode = modes[id];
@@ -33,10 +59,10 @@ void Gravitone::setActiveMode(int id) {
   }
 }
 
-/********************************************************************************************
- *
- *
- *******************************************************************************************/
+/**
+ * @brief Gravitone::addMode
+ * @param m
+ */
 void Gravitone::addMode(GravitoneMode *m) {
   modes[numModes] = m;
   modes[numModes]->setHardware(&hardware);
@@ -44,7 +70,9 @@ void Gravitone::addMode(GravitoneMode *m) {
   numModes += 1;
 }
 
-
+/**
+ * @brief Gravitone::eventLoop
+ */
 void Gravitone::eventLoop()
 {
   bool newButtons = false, newImu = false, newDisplay = false;
@@ -70,6 +98,10 @@ void Gravitone::eventLoop()
 
 }
 
+/**
+ * @brief Gravitone::handleButtons
+ * @param bid
+ */
 void Gravitone::handleButtons(int bid)
 {
   static bool modeSwitch = false;

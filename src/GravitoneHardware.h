@@ -1,12 +1,25 @@
-/*
-GravitoneHardware.h
-
-Matt Ruffner 2022
-MoveTones, LLC
-
-
-
-*/
+/* Gravitone Library
+ * Copyright (c) 2022, Matt Ruffner <matthew.ruffner@movetones.com>
+ * MoveTones, LLC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice, development funding notice, and this permission
+ * notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 #ifndef GRAVITONE_HARDWARE_H
 #define GRAVITONE_HARDWARE_H
@@ -24,7 +37,7 @@ MoveTones, LLC
 #include "util/buttons.h"
 #include "scale.h"
 
-#define MAX_PATCHES 20
+#define MAX_PATCHES 20 //! maximum number of Audio
 #define MAX_MODES   10
 
 class GravitoneHardware {
@@ -60,10 +73,23 @@ public:
   
   ~GravitoneHardware() {};
 
+  /**
+   * @brief begin
+   * @return if initialization was successful or not
+   */
   bool begin();
   
+  /**
+   * @brief update
+   * @param newButtons set true if new buttons have been pressed
+   * @param newImu set true if new IMU data is available
+   * @param newDisplay set true if its time for a display update
+   */
   void update(bool &newButtons, bool &newImu, bool &newDisplay);
-  
+  /**
+   * @brief enableAmp
+   *
+   */
   void enableAmp()   { setAmpState(true);  };
   void disableAmp()  { setAmpState(false); };
   bool getAmpState() { return ampState;    }
