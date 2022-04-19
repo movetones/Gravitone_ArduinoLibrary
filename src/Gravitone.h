@@ -29,10 +29,10 @@
  *
  * \mainpage Gravitone Library
  *
- * \section Design overiew
+ * \section Overiew
  * This library is l
  *
- *
+ * <img src="../images/button-mapping.png" width="500px">
  */
 
 #ifndef GRAVITONE_H
