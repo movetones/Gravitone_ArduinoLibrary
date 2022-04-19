@@ -3,7 +3,7 @@ name: Doxygen GitHub Pages Deploy Action
 on:
   push:
     branches:
-      - v1.2
+      - develop
   workflow_dispatch:
 
 jobs:
