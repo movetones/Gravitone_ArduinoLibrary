@@ -10,6 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: mattnotmitt/doxygen-action@1.9.3
         with:
           working-directory: '/github/workspace'
