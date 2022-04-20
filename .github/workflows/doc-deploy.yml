@@ -12,10 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: mattnotmitt/doxygen-action@1.9.3
+      - uses: langroodi/doxygenize@v1.6.1
         with:
-          working-directory: '/github/workspace'
-          doxyfile-path: 'Doxyfile'
-      uses: langroodi/doxygenize@v1.6.1
-      with:
-        htmloutput: './doc'
+          htmloutput: './doc'
         
