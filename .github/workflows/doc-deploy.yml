@@ -1,20 +1,16 @@
-name: Doxygen GitHub Pages Deploy Action
-
-on:
-  push:
-    branches:
-      - develop
-  workflow_dispatch:
-
-jobs:
-  deploy:
+--- 
+jobs: 
+  deploy: 
     runs-on: ubuntu-latest
-    steps:
-        uses: mattnotmitt/doxygen-action@1.9.3
-      	with:
-          working-directory: '/github/workspace'
-        uses: DenverCoder1/doxygen-github-pages-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          folder: doc
+    steps: 
+      uses: DenverCoder1/doxygen-github-pages-action@v1
+      with: 
+        branch: gh-pages
+        folder: doc
+        github_token: "${{ secrets.GITHUB_TOKEN }}"
+name: "Doxygen GitHub Pages Deploy Action"
+true: 
+  push: 
+    branches: 
+      - develop
+  workflow_dispatch: ~
