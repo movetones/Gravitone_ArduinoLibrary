@@ -1,2 +1,19 @@
 name: Doxygenize
-uses: langroodi/doxygenize@v1.6.1
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: langroodi/doxygenize@v1.6.1
+      - uses: DenverCoder1/doxygen-github-pages-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: doc
+          
