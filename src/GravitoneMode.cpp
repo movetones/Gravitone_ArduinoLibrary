@@ -24,6 +24,10 @@
 
 #include "GravitoneMode.h"
 
+/**
+ * @brief GravitoneMode::addPatch
+ * @param cable
+ */
 void GravitoneMode::addPatch(AudioConnection *cable)
 {
 
@@ -33,6 +37,9 @@ void GravitoneMode::addPatch(AudioConnection *cable)
   numPatches++;  
 }
 
+/**
+ * @brief GravitoneMode::reconnectPatches
+ */
 void GravitoneMode::reconnectPatches()
 {
   for( int i=0; i<numPatches; i++ ){
@@ -42,6 +49,9 @@ void GravitoneMode::reconnectPatches()
   }
 }
 
+/**
+ * @brief GravitoneMode::disconnectPatches
+ */
 void GravitoneMode::disconnectPatches()
 {
   #ifdef DEBUG_VERBOSE

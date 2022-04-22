@@ -2,12 +2,12 @@
 
 Support code and examples for the Gravitone.
 
-![example workflow](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/main.yml/badge.svg)
-
+![arduino lint](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/main.yml/badge.svg)
+![doxygen publish](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/doc-deploy.yml/badge.svg)
 
 ## Quick start
 
-If you want to start making sounds with the Gravitone immediately, follow these steps.
+If you want to reconfigure the Gravitone yourself and change the way it converts motions to sound, then follow these steps.
 
 - Install the Arduino IDE https://www.arduino.cc/en/software
 - Install Teensyduino https://www.pjrc.com/teensy/td_download.html

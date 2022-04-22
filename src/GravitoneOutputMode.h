@@ -27,6 +27,11 @@
 
 #include "GravitoneMode.h"
 
+
+#define VOL_UP 1    //! volume up
+#define VOL_DOWN -1 //! volume down
+
+
 /** @class GravitoneOutputMode
  * A Gravitone mode that adds support for outputting over I2S and provides
  * volume control through an amp AudioObject
@@ -35,7 +40,20 @@
  */
 class GravitoneOutputMode : public GravitoneMode {
 public:
-  GravitoneOutputMode() : volume(1) {};
+  /**
+   * @brief Default constructor - set initial volume to 1
+   */
+  GravitoneOutputMode() : volume(1) { setVolume(); };
+
+  /**
+   * @brief constructor with optional initial volume setting
+   * @param vol the initial volume to set
+   */
+  GravitoneOutputMode(int vol) : volume(vol) { setVolume(); }
+
+  /**
+   * @brief default destructor
+   */
   ~GravitoneOutputMode() {  };
 
   /**
@@ -43,53 +61,67 @@ public:
    * make the necessary audio connections for audio output
    * called by the containing Gravitone object
    */
-  void begin() {
-    addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 0) );
-    addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 1) );
-  }
+  void begin();
 
   /**
-   * @brief start
+   * @brief make audio connections and do any other initialization.
+   * Called by the gravitone object when swapping active modes.
    */
-  void start() {
-    hardware->enableAmp();
-    drawVolume();
-    setVolume();
-    reconnectPatches();
-    Serial.print("End of GravitoneOutputMode start(), numPatches = ");
-    Serial.println(numPatches);
-  }
+  void start();
   
   /**
-   * @brief stop
-   * prepare this mode to be made inactive by disconnecting all of its
+   * @brief prepare this mode to be made inactive by disconnecting all of its
    * audio objects from the shared output.
+   * Called by the Gravitone object when switching modes.
    */
-  void stop() {
-    disconnectPatches();
-    hardware->disableAmp();
-  }
+  void stop();
   
+  /**
+   * @brief utilize button 2 for volume down
+   * @param event the button event type passed from the hardware
+   */
   virtual void button2(butevent_t event) {  
     if( event == BUTTON_PRESSED ){
       cycleVolume(VOL_DOWN);
     }
   };
   
+  /**
+   * @brief utilize button 3 for volume up
+   * @param event the button event type passed from the hardware
+   */
   virtual void button3(butevent_t event) {
     if( event == BUTTON_PRESSED ){
       cycleVolume(VOL_UP);
     }
   }
   
+  /**
+   * @brief draw the volume icon based on current volume
+   */
   void drawVolume();
+
+  /**
+   * @brief cycle
+   * @param dir: direction to change volume, VOL_UP or VOL_DOWN
+   */
   void cycleVolume(int dir);
+
+  /**
+   * @brief directly set the volume. <=0 is muted. 1-4 are acceptable levels
+   * @param lvl: 0 - 4 volume setting
+   */
   void setVolume(int lvl); // 0 through 4 
+
+  /**
+   * @brief set amp1 gain based on member var volume
+   */
   void setVolume(); // uses member var
 
-  AudioAmplifier           amp1;           //xy=323,403
+
+  AudioAmplifier           amp1; //! amp to control overall mode output volume level
   
-  int volume;                  
+  int volume; //! the current volume setting
 };
 
 
