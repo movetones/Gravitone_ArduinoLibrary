@@ -81,41 +81,41 @@ $(function() {
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>  <a class="code hl_class" href="class_serial_passthrough_mode.html">SerialPassthroughMode</a>() {};</div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  <a class="code hl_class" href="class_serial_passthrough_mode.html">~SerialPassthroughMode</a>() {};</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <span class="keywordtype">void</span> start() {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    hardware-&gt;display.setTextSize(0);</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    hardware-&gt;display.setTextColor(WHITE, BLACK);</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    hardware-&gt;display.setCursor(0, 0);</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    hardware-&gt;display.print(<span class="stringliteral">&quot;Serial1 pipe&quot;</span>);</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    hardware-&gt;display.setCursor(0,20);</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    hardware-&gt;display.print(<span class="stringliteral">&quot;RST HIGH&quot;</span>);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    hardware-&gt;display.setCursor(0,10);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    hardware-&gt;display.print(<span class="stringliteral">&quot;GPIO 0 HIGH&quot;</span>);</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="class_serial_passthrough_mode.html#af7e6844d06dd1f648cd9edda8f39fd42">   12</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="class_serial_passthrough_mode.html#af7e6844d06dd1f648cd9edda8f39fd42">start</a>() {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setTextSize(0);</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setTextColor(WHITE, BLACK);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0, 0);</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;Serial1 pipe&quot;</span>);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0,20);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;RST HIGH&quot;</span>);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0,10);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;GPIO 0 HIGH&quot;</span>);</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  };</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  </div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordtype">void</span> button4(butevent_t event) {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="class_serial_passthrough_mode.html#ab416344cfdcd61948727dacc3df2c97f">   24</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="class_serial_passthrough_mode.html#ab416344cfdcd61948727dacc3df2c97f">button4</a>(butevent_t event) {</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="keywordflow">if</span>( event == BUTTON_PRESSED ){</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>      pinMode(ESP_RST, OUTPUT);</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>      digitalWrite(ESP_RST, LOW);</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      hardware-&gt;display.setCursor(0,20);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>      hardware-&gt;display.print(<span class="stringliteral">&quot;RST LOW &quot;</span>);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0,20);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;RST LOW &quot;</span>);</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span>( event == BUTTON_RELEASED ){</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>      pinMode(ESP_RST, INPUT);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>      hardware-&gt;display.setCursor(0,20);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      hardware-&gt;display.print(<span class="stringliteral">&quot;RST HIGH&quot;</span>);</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0,20);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;RST HIGH&quot;</span>);</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    }</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  };</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">void</span> button5(butevent_t event) {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="class_serial_passthrough_mode.html#ab3a47b403c5d6a53bc149279c9f77546">   37</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="class_serial_passthrough_mode.html#ab3a47b403c5d6a53bc149279c9f77546">button5</a>(butevent_t event) {</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordflow">if</span>( event == BUTTON_PRESSED ){</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      pinMode(ESP_GPIO0, OUTPUT);</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      digitalWrite(ESP_GPIO0, LOW);</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      hardware-&gt;display.setCursor(0,10);</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      hardware-&gt;display.print(<span class="stringliteral">&quot;GPIO 0 LOW &quot;</span>);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0,10);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;GPIO 0 LOW &quot;</span>);</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span>( event == BUTTON_RELEASED ){</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>      pinMode(ESP_GPIO0, INPUT);</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      hardware-&gt;display.setCursor(0,10);</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      hardware-&gt;display.print(<span class="stringliteral">&quot;GPIO 0 HIGH&quot;</span>);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.setCursor(0,10);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      hardware-&gt;<a class="code hl_variable" href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">display</a>.print(<span class="stringliteral">&quot;GPIO 0 HIGH&quot;</span>);</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    }</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  };</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>};</div>
@@ -123,8 +123,12 @@ $(function() {
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="a_gravitone_8h_html"><div class="ttname"><a href="_gravitone_8h.html">Gravitone.h</a></div></div>
-<div class="ttc" id="aclass_gravitone_mode_html"><div class="ttname"><a href="class_gravitone_mode.html">GravitoneMode</a></div><div class="ttdef"><b>Definition:</b> GravitoneMode.h:36</div></div>
+<div class="ttc" id="aclass_gravitone_hardware_html_a69c821a2805722930f25e6da9b19866f"><div class="ttname"><a href="class_gravitone_hardware.html#a69c821a2805722930f25e6da9b19866f">GravitoneHardware::display</a></div><div class="ttdeci">static Adafruit_SSD1306 display</div><div class="ttdoc">digital IO expander object</div><div class="ttdef"><b>Definition:</b> GravitoneHardware.h:225</div></div>
+<div class="ttc" id="aclass_gravitone_mode_html"><div class="ttname"><a href="class_gravitone_mode.html">GravitoneMode</a></div><div class="ttdef"><b>Definition:</b> GravitoneMode.h:43</div></div>
 <div class="ttc" id="aclass_serial_passthrough_mode_html"><div class="ttname"><a href="class_serial_passthrough_mode.html">SerialPassthroughMode</a></div><div class="ttdef"><b>Definition:</b> SerialPassthroughMode.h:6</div></div>
+<div class="ttc" id="aclass_serial_passthrough_mode_html_ab3a47b403c5d6a53bc149279c9f77546"><div class="ttname"><a href="class_serial_passthrough_mode.html#ab3a47b403c5d6a53bc149279c9f77546">SerialPassthroughMode::button5</a></div><div class="ttdeci">void button5(butevent_t event)</div><div class="ttdoc">button5</div><div class="ttdef"><b>Definition:</b> SerialPassthroughMode.h:37</div></div>
+<div class="ttc" id="aclass_serial_passthrough_mode_html_ab416344cfdcd61948727dacc3df2c97f"><div class="ttname"><a href="class_serial_passthrough_mode.html#ab416344cfdcd61948727dacc3df2c97f">SerialPassthroughMode::button4</a></div><div class="ttdeci">void button4(butevent_t event)</div><div class="ttdoc">button4</div><div class="ttdef"><b>Definition:</b> SerialPassthroughMode.h:24</div></div>
+<div class="ttc" id="aclass_serial_passthrough_mode_html_af7e6844d06dd1f648cd9edda8f39fd42"><div class="ttname"><a href="class_serial_passthrough_mode.html#af7e6844d06dd1f648cd9edda8f39fd42">SerialPassthroughMode::start</a></div><div class="ttdeci">void start()</div><div class="ttdoc">start</div><div class="ttdef"><b>Definition:</b> SerialPassthroughMode.h:12</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
