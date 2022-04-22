@@ -24,18 +24,47 @@
 
 #include "GravitoneOutputMode.h"
 
-/********************************************************************************************
- *
- *
- *******************************************************************************************/
+/**
+ * @brief GravitoneOutputMode::start
+ */
+void GravitoneOutputMode::start() {
+  hardware->enableAmp();
+  drawVolume();
+  setVolume();
+  reconnectPatches();
+  Serial.print("End of GravitoneOutputMode start(), numPatches = ");
+  Serial.println(numPatches);
+}
+
+/**
+ * @brief GravitoneOutputMode::stop
+ */
+void GravitoneOutputMode::stop() {
+  disconnectPatches();
+  hardware->disableAmp();
+}
+
+/**
+ * @brief GravitoneOutputMode::begin
+ */
+void GravitoneOutputMode::begin() {
+  addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 0) );
+  addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 1) );
+  addPatch( new AudioConnection(amp1, 0, hardware->usb1, 1) );
+  addPatch( new AudioConnection(amp1, 0, hardware->usb1, 1) );
+}
+
+/**
+ * @brief GravitoneOutputMode::drawVolume
+ */
 void GravitoneOutputMode::drawVolume() {
   hardware->display.drawBitmap(102, 0,  getDrawableForVolumeLevel(volume), 8, 8, 1, 0);
 }
 
-/********************************************************************************************
- *
- *
- *******************************************************************************************/
+/**
+ * @brief GravitoneOutputMode::cycleVolume
+ * @param dir
+ */
 void GravitoneOutputMode::cycleVolume(int dir) {
   if ( dir > 0) {
     if ( volume >= 4 ) return;
@@ -47,18 +76,17 @@ void GravitoneOutputMode::cycleVolume(int dir) {
   setVolume();
 }
 
-/********************************************************************************************
- *
- *
- *******************************************************************************************/
+/**
+ * @brief GravitoneOutputMode::setVolume
+ */
 void GravitoneOutputMode::setVolume() {
   setVolume(volume);
 }
 
-/********************************************************************************************
- *
- *
- *******************************************************************************************/
+/**
+ * @brief GravitoneOutputMode::setVolume
+ * @param vol
+ */
 void GravitoneOutputMode::setVolume(int vol) {
   if ( vol > 0 ) {
     hardware->enableAmp();

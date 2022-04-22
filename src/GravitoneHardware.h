@@ -27,7 +27,7 @@
 #include "ICM_20948.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_MCP23017.h>
+#include <Adafruit_MCP23X17.h>
 #include <Geometry.h>
 #include <Audio.h>
 
@@ -37,9 +37,11 @@
 #include "util/buttons.h"
 #include "scale.h"
 
-#define MAX_PATCHES 20 //! maximum number of Audio
-#define MAX_MODES   10
 
+/**
+ * @class GravitoneHardware
+ * The main driver for the screen buttons and IMU on the Gravitone
+ */
 class GravitoneHardware {
 public:
   GravitoneHardware() : 
@@ -53,9 +55,7 @@ public:
                         heading(0),
                         pitch(0),
                         roll(0),
-                        ax(0),ay(0),az(0),
-                        gx(0),gy(0),gz(0),
-                        mx(0),my(0),mz(0) {
+                        ax(0),ay(0),az(0) {
 
     xOrigin(0) = 1.0;
     xOrigin(1) = 0.0;
@@ -86,59 +86,204 @@ public:
    * @param newDisplay set true if its time for a display update
    */
   void update(bool &newButtons, bool &newImu, bool &newDisplay);
+
   /**
    * @brief enableAmp
-   *
    */
   void enableAmp()   { setAmpState(true);  };
+
+  /**
+   * @brief disableAmp
+   */
   void disableAmp()  { setAmpState(false); };
+
+  /**
+   * @brief getAmpState
+   * @return
+   */
   bool getAmpState() { return ampState;    }
+
+  /**
+   * @brief setAmpState
+   * @param state
+   */
   void setAmpState(bool state);
 
+  /**
+   * @brief updateOrientation
+   * @return
+   */
   bool updateOrientation();
+
+  /**
+   * @brief getHeading
+   * @return
+   */
   double getHeading() { return heading; }
+
+  /**
+   * @brief getPitch
+   * @return
+   */
   double getPitch() { return pitch; }
+
+  /**
+   * @brief getRoll
+   * @return
+   */
   double getRoll() { return roll; }
+
+  /**
+   * @brief getQ0
+   * @return
+   */
   double getQ0() { return q0; }
+
+  /**
+   * @brief getQ1
+   * @return
+   */
   double getQ1() { return q1; }
+
+  /**
+   * @brief getQ2
+   * @return
+   */
   double getQ2() { return q2; }
+
+  /**
+   * @brief getQ3
+   * @return
+   */
   double getQ3() { return q3; }
+
+  /**
+   * @brief getAx
+   * @return
+   */
   double getAx() { return ax; }
+
+  /**
+   * @brief getAy
+   * @return
+   */
   double getAy() { return ay; }
+
+  /**
+   * @brief getAz
+   * @return
+   */
   double getAz() { return az; }
 
+  /**
+   * @brief getAcc
+   * @return the current accelerometer readings as a 3x1 vector
+   */
+  BLA::Matrix<3> getAcc() { return  acc; }
+
+  /**
+   * @brief getRot
+   * @return the rotation orientation of the device
+   */
+  BLA::Matrix<3,3> getRot() { return rot; }
+
+  /**
+   * @brief buttonsAvailable
+   * @return
+   */
   bool buttonsAvailable();
+
+  /**
+   * @brief buttonsAvailable
+   * @param i
+   * @return
+   */
   bool buttonsAvailable(int i);
+
+  /**
+   * @brief lastButtonPress
+   * @return
+   */
   int lastButtonPress();
+
+  /**
+   * @brief getButtonState
+   * @param id
+   * @return
+   */
   int getButtonState(int id) { return buttonStates[id]; }
+
+  /**
+   * @brief getButtonStates
+   * @return
+   */
   uint8_t* getButtonStates() { return buttonStates; }
   
+  /**
+   * @brief sleep
+   */
   void sleep();
+
+  /**
+   * @brief wake
+   */
   void wake();
   
-  AudioOutputI2S           i2s1;           //xy=793,403
+  AudioOutputI2S           i2s1; //! output to speaker amp,
+  AudioOutputUSB            usb1;
 
-  static ICM_20948_I2C myICM;
-  static Adafruit_MCP23017 mcp;
-  static Adafruit_SSD1306 display;
+
+  static ICM_20948_I2C myICM;    //! IMU object
+  static Adafruit_MCP23X17 mcp;  //! digital IO expander object
+  static Adafruit_SSD1306 display; //! OLED display object
   
 private:
+  /**
+   * @brief updateBattery
+   */
   void updateBattery();
+
+  /**
+   * @brief updateButtons
+   */
   void updateButtons();
+
+  /**
+   * @brief initImu
+   * @return
+   */
   bool initImu();
+
+  /**
+   * @brief initScreen
+   */
   void initScreen();
+
+  /**
+   * @brief initButtons
+   */
   void initButtons();
+
+  /**
+   * @brief imuSleep
+   */
   void imuSleep();
+
+  /**
+   * @brief imuWake
+   */
   void imuWake();
   
   BLA::Matrix<3> xPointer, yPointer, 
                  zPointer, xOrigin, 
                  yOrigin, zOrigin;
-  bool ampState;
+  BLA::Matrix<3,3>  rot; //! current quaterion as rotation matrix
+  BLA::Matrix<3> acc;
+  bool ampState;  //! whether or not the I2S amp is enabled
   bool handleEsp;
   double heading, pitch, roll;
   double q0, q1, q2, q3;
-  double ax,ay,az,gx,gy,gz,mx,my,mz;
+  double ax,ay,az;
   unsigned long lastImuUpdate, lastDisplayUpdate, lastBatteryUpdate, lastButtonUpdate;
   unsigned long inactivityTimer;
   uint16_t buttonUpdateInterval, displayUpdateInterval, batteryUpdateInterval;
@@ -147,3 +292,4 @@ private:
 };
 
 #endif
+

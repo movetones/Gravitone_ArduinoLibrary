@@ -91,7 +91,7 @@ void Gravitone::eventLoop()
   if( newButtons ){
     for( i =0; i<12; i++ ){
       if( hardware.buttonsAvailable(i) ){
-        handleButtons(i);
+        handleButtons(i, hardware.getButtonState(i));
       }    
     }
   }
@@ -102,21 +102,21 @@ void Gravitone::eventLoop()
  * @brief Gravitone::handleButtons
  * @param bid
  */
-void Gravitone::handleButtons(int bid)
+void Gravitone::handleButtons(int bid, butevent_t event)
 {
   static bool modeSwitch = false;
   
   switch ( bid ){
   case GB1:
-    if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
+    if( event == BUTTON_PRESSED ){
       modeSwitch = true;
-    } else if( hardware.getButtonState(bid) == BUTTON_RELEASED ){
+    } else if( event == BUTTON_RELEASED ){
       modeSwitch = false;
     }
     break;
   case GB2:
     if( modeSwitch ){
-      if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
+      if( event == BUTTON_PRESSED ){
         if( activeMode == 0 ){
           setActiveMode( numModes - 1 );
         } else {
@@ -124,12 +124,12 @@ void Gravitone::handleButtons(int bid)
         }
       }
     } else {
-      mode->button2(hardware.getButtonState(bid));
+      mode->button2(event);
     }
     break;
   case GB3:
     if( modeSwitch ){
-      if( hardware.getButtonState(bid) == BUTTON_PRESSED ){
+      if( event == BUTTON_PRESSED ){
         if( activeMode == (numModes-1) ){
           setActiveMode( 0 );
         } else {
@@ -137,35 +137,35 @@ void Gravitone::handleButtons(int bid)
         }
       }
     } else {
-      mode->button3(hardware.getButtonState(bid));
+      mode->button3(event);
     }
     break;
   case GB4:
-    mode->button4(hardware.getButtonState(bid));
+    mode->button4(event);
     break;
   case GB5:
-    mode->button5(hardware.getButtonState(bid));
+    mode->button5(event);
     break;
   case GB6:
-    mode->button6(hardware.getButtonState(bid));
+    mode->button6(event);
     break;
   case GB7:
-    mode->button7(hardware.getButtonState(bid));
+    mode->button7(event);
     break;
   case GB8:
-    mode->button8(hardware.getButtonState(bid));
+    mode->button8(event);
     break;
   case GB9:
-    mode->button9(hardware.getButtonState(bid));
+    mode->button9(event);
     break;
   case GB10:
-    mode->button10(hardware.getButtonState(bid));
+    mode->button10(event);
     break;
   case GB11:
-    mode->button11(hardware.getButtonState(bid));
+    mode->button11(event);
     break;
   case GB12:
-    mode->button12(hardware.getButtonState(bid));
+    mode->button12(event);
     break; 
   }
 }

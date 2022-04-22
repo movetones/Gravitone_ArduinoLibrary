@@ -105,7 +105,7 @@ public:
   void addMode(GravitoneMode *m);
   
   int numModes;   //! the total number of installed modes
-  int activeMode; //! the
+  int activeMode; //! the index of the active mode within the modes list
   
   bool init[MAX_MODES]; //! initialization status of installed modes
 
@@ -116,7 +116,11 @@ public:
   GravitoneHardware hardware; //! the driver instance
   
 private:
-  void handleButtons(int bid);
+  /**
+   * @brief dispatch button events to the active mode
+   * @param bid the button id th
+   */
+  void handleButtons(int bid, butevent_t event);
 };
 
 

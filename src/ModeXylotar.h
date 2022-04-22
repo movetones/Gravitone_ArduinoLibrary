@@ -26,20 +26,18 @@
 #include "scale.h"
 
 /*
- *  @brief WaveMode used to controlll three different
- * oscillators based on the yar pitch and roll of
- * the Gravitone
+ *  @brief Triangle class used for triangle manipulations.
  */
 
-class WaveMode : public GravitoneOutputMode {
+class ModeXylotar : public GravitoneOutputMode {
 public:
 
-  WaveMode();
-  ~WaveMode();
-  
+  ModeXylotar();
+  ~ModeXylotar();
+
   void start();
   void stop();
-  
+
   void button4(butevent_t event);
   void button5(butevent_t event);
   void button6(butevent_t event);
@@ -49,23 +47,47 @@ public:
   void button10(butevent_t event);
   void button11(butevent_t event);
   void button12(butevent_t event);
-  
+
   void onUpdateOrientation();
   void onUpdateDisplay();
 
   const char * getName();
-  
-  int activeWaveform;
-  float freq, freq2, freq3;
-  float baseNote;
-  int octaveShift;
 
-  AudioSynthWaveform       waveform1;      //xy=140,403
-  AudioSynthWaveform       waveform2;      //xy=140,403
-  AudioSynthWaveform       waveform3;      //xy=140,403
-  AudioEffectFade          fade1;          //xy=492,402
-  AudioEffectFade          fade2;          //xy=492,402
-  AudioEffectFade          fade3;          //xy=492,402
+  float getNotesOfChord(uint16_t type, float baseNote, float* output);
+
+  int activeWaveform;
+  float freq;
+
+  float trigThresh, idleThresh;
+
+  uint16_t chordType;
+
+  bool playChord;
+
+  float freqs[6];
+
+  int peakState = 0;
+
+  gs_Scale *scale;
+  gs_Chord *chord;
+
+  unsigned long lastSampleTime;
+  float lastPowerValue;
+
+  AudioSynthWaveform        sine1;
+  AudioSynthWaveform        sine2;
+  AudioSynthWaveform        sine3;
+  AudioSynthWaveform        sine4;
+  AudioEffectEnvelope           envelope1;
+  AudioEffectEnvelope           envelope2;
+  AudioEffectEnvelope           envelope3;
+  AudioEffectEnvelope           envelope4;
+//  AudioSynthKarplusStrong       string1;
+//  AudioSynthKarplusStrong       string2;
+//  AudioSynthKarplusStrong       string3;
+//  AudioSynthKarplusStrong       string4;
+//  AudioSynthKarplusStrong       string5;
+//  AudioSynthKarplusStrong       string6;
   AudioMixer4              mixer1;
 };
 

@@ -2,12 +2,12 @@
 
 Support code and examples for the Gravitone.
 
-![example workflow](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/main.yml/badge.svg)
-
+![arduino lint](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/main.yml/badge.svg)
+![doxygen publish](https://github.com/movetones/Gravitone_ArduinoLibrary/actions/workflows/doc-deploy.yml/badge.svg)
 
 ## Quick start
 
-If you want to start making sounds with the Gravitone immediately, follow these steps.
+If you want to reconfigure the Gravitone yourself and change the way it converts motions to sound, then follow these steps.
 
 - Install the Arduino IDE https://www.arduino.cc/en/software
 - Install Teensyduino https://www.pjrc.com/teensy/td_download.html
@@ -23,10 +23,7 @@ If you want to start making sounds with the Gravitone immediately, follow these 
 
 ## Buttons and control
 
-This section explains the button functionality for the two modes used in the ModesExample mentioned above.
-
-### Power on calibration
-When you turn on the Gravitone, it is best to hold buttons down until it makes a beep after fully booting up.
+When you turn on the Gravitone, it is best to hold buttons down until it makes a beep after fully booting up, otherwise it will take about 25 seconds for the motion sensor to stabilize.
 
 The two default output modes are scale mode and wave mode, both of which are "output modes". This means they both use buttons 2 and 3 for volume control, unless you hold button 1 which then acts as a mode switch
 
@@ -41,8 +38,6 @@ On all example output modes, buttons 1 through 3 have the following functionalit
 3: Volume up
 
 ## Modes
-The two default modes are scale mode and wave mode which both offer an entertaining variety of features. 
-
 To switch modes, hold down button 1 and press button 2 or 3. When button 1 is pressed buttons 2 and 3 have the following functionality:
 
 2: Previous mode

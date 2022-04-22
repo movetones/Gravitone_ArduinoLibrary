@@ -25,14 +25,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define QUAT_ANIMATION
-#define GTONE_USE_DMP 
+#define MAX_PATCHES 20 //! maximum number of Audio patches
+#define MAX_MODES   10 //! maximum number of modes allowed to be installed
+
 #define SERIAL_PORT Serial
 
 #define GTONE_WIFI
-
-#define VOL_UP 1
-#define VOL_DOWN -1
-
 
 #endif
