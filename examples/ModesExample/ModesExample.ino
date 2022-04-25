@@ -11,6 +11,7 @@
 #include <Gravitone.h>
 #include <WaveMode.h>
 #include <ScaleMode.h>
+#include <ModeXylotar.h>
 
 Gravitone g;
 
@@ -28,9 +29,11 @@ void setup() {
 
   ScaleMode *scaleMode = new ScaleMode();
   WaveMode *waveMode = new WaveMode();
+  ModeXylotar *xylotarMode = new ModeXylotar();
   
   g.addMode(scaleMode);
   g.addMode(waveMode);
+  g.addMode(xylotarMode);
   
   g.setActiveMode(0);
   

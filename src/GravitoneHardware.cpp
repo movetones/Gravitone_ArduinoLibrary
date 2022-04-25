@@ -245,7 +245,7 @@ bool GravitoneHardware::updateOrientation()
       Geometry::Quaternion quat( q1, q2, q3, q0);
       //Geometry::Quaternion quatConj( -1.0*q1, -1.0*q2, -1.0*q3, q0);
 
-      BLA::Matrix<3,3> rot = quat.to_rotation_matrix();
+      rot = quat.to_rotation_matrix();
       
       // find the axes representing the rotated reference frame
       xPointer = rot * xOrigin; 
@@ -330,6 +330,9 @@ bool GravitoneHardware::updateOrientation()
       ay = (double)data.Raw_Accel.Data.Y / 32767.0; // Convert to double. Divide by 2^30
       az = (double)data.Raw_Accel.Data.Z / 32767.0; // Convert to double. Divide by 2^30
       
+      acc(0) = ax;
+      acc(1) = ay;
+      acc(2) = az;
       
       /*SERIAL_PORT.print(ax);
       SERIAL_PORT.print(F(", "));

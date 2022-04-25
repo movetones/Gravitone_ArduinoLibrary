@@ -39,7 +39,8 @@
 
 
 /**
- * @class The GravitoneHardware class
+ * @class GravitoneHardware
+ * The main driver for the screen buttons and IMU on the Gravitone
  */
 class GravitoneHardware {
 public:
@@ -177,6 +178,18 @@ public:
   double getAz() { return az; }
 
   /**
+   * @brief getAcc
+   * @return the current accelerometer readings as a 3x1 vector
+   */
+  BLA::Matrix<3> getAcc() { return  acc; }
+
+  /**
+   * @brief getRot
+   * @return the rotation orientation of the device
+   */
+  BLA::Matrix<3,3> getRot() { return rot; }
+
+  /**
    * @brief buttonsAvailable
    * @return
    */
@@ -264,11 +277,13 @@ private:
   BLA::Matrix<3> xPointer, yPointer, 
                  zPointer, xOrigin, 
                  yOrigin, zOrigin;
+  BLA::Matrix<3,3>  rot; //! current quaterion as rotation matrix
+  BLA::Matrix<3> acc;
   bool ampState;  //! whether or not the I2S amp is enabled
   bool handleEsp;
   double heading, pitch, roll;
   double q0, q1, q2, q3;
-  double ax,ay,az,gx,gy,gz,mx,my,mz;
+  double ax,ay,az;
   unsigned long lastImuUpdate, lastDisplayUpdate, lastBatteryUpdate, lastButtonUpdate;
   unsigned long inactivityTimer;
   uint16_t buttonUpdateInterval, displayUpdateInterval, batteryUpdateInterval;
