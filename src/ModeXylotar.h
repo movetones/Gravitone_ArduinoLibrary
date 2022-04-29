@@ -24,6 +24,8 @@
 
 #include "GravitoneOutputMode.h"
 #include "scale.h"
+#include <CircularBuffer.h>
+
 
 /*
  *  @brief Triangle class used for triangle manipulations.
@@ -53,24 +55,42 @@ public:
 
   const char * getName();
 
-  int activeWaveform;
-  float freq, freq2, freq3;
-  float baseNote;
-  int octaveShift;
+  float getNotesOfChord(uint16_t type, float baseNote, float* output);
 
-  double lastAz;
-  int timeAccelerating;
+  int activeWaveform;
+  float freq;
+
+  float trigThresh, idleThresh;
+
+  uint16_t chordType;
+
+  bool playChord;
+
+  float freqs[6];
+
+  int peakState = 0;
 
   gs_Scale *scale;
+  gs_Chord *chord;
 
-  AudioSynthKarplusStrong       string1;
-  AudioSynthKarplusStrong       string2;
-  AudioSynthKarplusStrong       string3;
-  AudioSynthKarplusStrong       string4;
-  AudioSynthKarplusStrong       string5;
-  AudioSynthKarplusStrong       string6;
+  unsigned long lastSampleTime;
+  float lastPowerValue;
+
+  AudioSynthWaveform        sine1;
+  AudioSynthWaveform        sine2;
+  AudioSynthWaveform        sine3;
+  AudioSynthWaveform        sine4;
+  AudioEffectEnvelope           envelope1;
+  AudioEffectEnvelope           envelope2;
+  AudioEffectEnvelope           envelope3;
+  AudioEffectEnvelope           envelope4;
+//  AudioSynthKarplusStrong       string1;
+//  AudioSynthKarplusStrong       string2;
+//  AudioSynthKarplusStrong       string3;
+//  AudioSynthKarplusStrong       string4;
+//  AudioSynthKarplusStrong       string5;
+//  AudioSynthKarplusStrong       string6;
   AudioMixer4              mixer1;
-  AudioMixer4              mixer2;
 };
 
 

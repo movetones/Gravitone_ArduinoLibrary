@@ -330,9 +330,10 @@ bool GravitoneHardware::updateOrientation()
       ay = (double)data.Raw_Accel.Data.Y / 32767.0; // Convert to double. Divide by 2^30
       az = (double)data.Raw_Accel.Data.Z / 32767.0; // Convert to double. Divide by 2^30
       
-      acc(0) = ax;
-      acc(1) = ay;
-      acc(2) = az;
+      // +/- 4g range
+      acc(0) = ax*4;
+      acc(1) = ay*4;
+      acc(2) = az*4;
       
       /*SERIAL_PORT.print(ax);
       SERIAL_PORT.print(F(", "));
