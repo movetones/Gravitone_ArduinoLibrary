@@ -120,7 +120,6 @@ public:
 
 
   AudioAmplifier           amp1; //! amp to control overall mode output volume level
-  
   int volume; //! the current volume setting
 };
 

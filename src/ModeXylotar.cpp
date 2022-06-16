@@ -3,7 +3,7 @@
 ModeXylotar::ModeXylotar()
 {
   idleThresh = 1.5;
-  trigThresh = 2.5;
+  trigThresh = 3.0;
   playChord = false;
   lastSampleTime = 0;
   lastPowerValue = 0;
