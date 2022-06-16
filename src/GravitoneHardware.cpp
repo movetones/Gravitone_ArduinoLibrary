@@ -371,6 +371,9 @@ void GravitoneHardware::initButtons()
   pinMode(MCP23017_INTA, INPUT);
   pinMode(MCP23017_INTB, INPUT);
   
+  // INIT MCP
+  mcp.begin_I2C();
+
   // GPIO DIRECTION AND PULLUP CONFIG
   for( int i=0; i<12; i++ ){
     mcp.pinMode(i, INPUT_PULLUP);

@@ -23,10 +23,7 @@ If you want to reconfigure the Gravitone yourself and change the way it converts
 
 ## Buttons and control
 
-This section explains the button functionality for the two modes used in the ModesExample mentioned above.
-
-### Power on calibration
-When you turn on the Gravitone, it is best to hold buttons down until it makes a beep after fully booting up.
+When you turn on the Gravitone, it is best to hold buttons down until it makes a beep after fully booting up, otherwise it will take about 25 seconds for the motion sensor to stabilize.
 
 The two default output modes are scale mode and wave mode, both of which are "output modes". This means they both use buttons 2 and 3 for volume control, unless you hold button 1 which then acts as a mode switch
 
@@ -41,8 +38,6 @@ On all example output modes, buttons 1 through 3 have the following functionalit
 3: Volume up
 
 ## Modes
-The two default modes are scale mode and wave mode which both offer an entertaining variety of features. 
-
 To switch modes, hold down button 1 and press button 2 or 3. When button 1 is pressed buttons 2 and 3 have the following functionality:
 
 2: Previous mode
