@@ -64,7 +64,7 @@ bool GravitoneHardware::begin()
     display.display();
   }
   
-  buttonUpdateInterval = 20;
+  buttonUpdateInterval = 40;
   displayUpdateInterval = 200;
   batteryUpdateInterval = 5000;
   

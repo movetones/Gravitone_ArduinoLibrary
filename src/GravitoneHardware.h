@@ -230,6 +230,8 @@ public:
   void wake();
   
   AudioOutputI2S           i2s1; //! output to speaker amp,
+  AudioOutputUSB            usb1;
+
 
   static ICM_20948_I2C myICM;    //! IMU object
   static Adafruit_MCP23017 mcp;  //! digital IO expander object
