@@ -25,7 +25,7 @@
 
 // get other libraries instantiated
 ICM_20948_I2C GravitoneHardware::myICM = ICM_20948_I2C();
-Adafruit_MCP23017 GravitoneHardware::mcp = Adafruit_MCP23017();
+Adafruit_MCP23X17 GravitoneHardware::mcp = Adafruit_MCP23X17();
 Adafruit_SSD1306 GravitoneHardware::display = Adafruit_SSD1306(-1);
 
 /**
@@ -370,13 +370,10 @@ void GravitoneHardware::initButtons()
   // SET INTERRUPT PINS AS INPUTS
   pinMode(MCP23017_INTA, INPUT);
   pinMode(MCP23017_INTB, INPUT);
-
-  mcp.begin();
   
   // GPIO DIRECTION AND PULLUP CONFIG
   for( int i=0; i<12; i++ ){
-    mcp.pinMode(i, INPUT);
-    mcp.pullUp(i, HIGH);
+    mcp.pinMode(i, INPUT_PULLUP);
     mcp.setupInterruptPin(i,CHANGE); 
   }
   

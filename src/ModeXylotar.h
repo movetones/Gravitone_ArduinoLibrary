@@ -24,8 +24,6 @@
 
 #include "GravitoneOutputMode.h"
 #include "scale.h"
-#include <CircularBuffer.h>
-
 
 /*
  *  @brief Triangle class used for triangle manipulations.

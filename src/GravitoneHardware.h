@@ -27,7 +27,7 @@
 #include "ICM_20948.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_MCP23017.h>
+#include <Adafruit_MCP23X17.h>
 #include <Geometry.h>
 #include <Audio.h>
 
@@ -234,7 +234,7 @@ public:
 
 
   static ICM_20948_I2C myICM;    //! IMU object
-  static Adafruit_MCP23017 mcp;  //! digital IO expander object
+  static Adafruit_MCP23X17 mcp;  //! digital IO expander object
   static Adafruit_SSD1306 display; //! OLED display object
   
 private:
