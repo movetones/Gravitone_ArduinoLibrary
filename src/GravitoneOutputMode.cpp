@@ -50,7 +50,7 @@ void GravitoneOutputMode::stop() {
 void GravitoneOutputMode::begin() {
   addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 0) );
   addPatch( new AudioConnection(amp1, 0, hardware->i2s1, 1) );
-  addPatch( new AudioConnection(amp1, 0, hardware->usb1, 1) );
+  addPatch( new AudioConnection(amp1, 0, hardware->usb1, 0) );
   addPatch( new AudioConnection(amp1, 0, hardware->usb1, 1) );
 }
 

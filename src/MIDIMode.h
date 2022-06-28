@@ -21,17 +21,47 @@
  * THE SOFTWARE.
  */
 
+#include "GravitoneMode.h"
+#include "scale.h"
 
-#ifndef CONFIG_H
-#define CONFIG_H
+/*
+ *  @brief MIDIMode - output midi messages in response to button presses
+ *  and orientation changes of the gravitone
+ */
 
-#define MAX_PATCHES 20 //! maximum number of Audio patches
-#define MAX_MODES   10 //! maximum number of modes allowed to be installed
+class MIDIMode : public GravitoneMode {
+public:
 
-#define SERIAL_PORT Serial
+  MIDIMode();
+  ~MIDIMode();
+  
+  void start();
+  void stop();
+  
+  void button2(butevent_t event);
+  void button3(butevent_t event);
+  void button4(butevent_t event);
+  void button5(butevent_t event);
+  void button6(butevent_t event);
+  void button7(butevent_t event);
+  void button8(butevent_t event);
+  void button9(butevent_t event);
+  void button10(butevent_t event);
+  void button11(butevent_t event);
+  void button12(butevent_t event);
+  
+  void onUpdateOrientation();
+  void onUpdateDisplay();
 
-#define GRAVITONE_MIDI_CHANNEL 7
+  const char * getName();
 
-#define GTONE_WIFI
+  float s1,s2,s3;
+  uint8_t page;
+  int channel;
 
-#endif
+private:
+  bool b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12;
+
+};
+
+
