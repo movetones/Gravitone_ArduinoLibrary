@@ -23,11 +23,11 @@ If you want to reconfigure the Gravitone yourself and change the way it converts
 
 ## Buttons and control
 
-When you turn on the Gravitone, it is best to hold buttons down until it makes a beep after fully booting up, otherwise it will take about 25 seconds for the motion sensor to stabilize.
+When you turn on the Gravitone, it is best to hold the Gravitone upside down until it makes a beep after fully booting up, otherwise it will take about 25 seconds for the motion sensor to stabilize.
 
-The two default output modes are scale mode and wave mode, both of which are "output modes". This means they both use buttons 2 and 3 for volume control, unless you hold button 1 which then acts as a mode switch
+There are three default output modes: scale mode, wave mode, and xylotar mode, all of which are "output modes". This means they both use buttons 2 and 3 for volume control, unless you hold button 1 in which case buttons two and three arrow between modes.
 
-<img src='images/button-mapping.png'/>
+<img src='images/button-mapping.png' width="800"/>
 
 On all example output modes, buttons 1 through 3 have the following functionality:
 
@@ -36,6 +36,10 @@ On all example output modes, buttons 1 through 3 have the following functionalit
 2: Volume down
 
 3: Volume up
+
+In all of the modes, the following rotation convention is used when referencing yaw pitch and roll.
+<img src="images/device orientation.png" width="800" />
+
 
 ## Modes
 To switch modes, hold down button 1 and press button 2 or 3. When button 1 is pressed buttons 2 and 3 have the following functionality:
@@ -46,7 +50,9 @@ To switch modes, hold down button 1 and press button 2 or 3. When button 1 is pr
 
 
 ### Scale mode
-Scale mode offers a variety of 
+Scale mode allows the user to play notes of many musical scales mapped to the device orientation, and also play them simulataneuously. The vibrato buttons allow for bending the each note when the Gravitone is shaken on the opposite axis (side-to-side if playing a pitch note, and front to back if playing a roll note).
+
+<img src="images/scale-mode-button-map.png" width="400"/>
 
 4: Play a note based on the **pitch** of the device
 
@@ -60,14 +66,19 @@ Scale mode offers a variety of
 
 9: Play vibrato applied to the note based on **pitch**
 
-10: Change scale type (Blues, major, minor, etc.)
+10: Switch between a sine and sawtooth waveform
 
 11: Change key (G, D, A, etc)
 
-12: Switch between a sine and sawtooth waveform
+12: Change scale type (Blues, major, minor, etc.)
 
 
 ### Wave mode
+This mode uses three separate oscillators each controlled by the yaw/pitch/roll of the device, and allows the user to play them in different polyphonic combinations. Switching between sine and sawtooth modes is also supported, as well as the set root button. The set root button changes the root note of all three oscillators.
+
+<img src="images/wave-mode-button-map.png" width="400"/>
+
+
 4: Play a waveform whos frequency is mapped to the **pitch** of the device
 
 5: Play a waveform whos frequency is mapped to the **roll** of the device
@@ -86,17 +97,38 @@ Scale mode offers a variety of
 
 12: Play all three waveforms at once
 
+### Xylotar mode
+
+Xylotar mode plays a synthesized plucking of a guitar string when the Gravitone is struck in a hammer-like motion similar to the motion one makes when playing a xlylophone. 
+
+<img src="images/xylotar-button-map.png" width="400"/>
+
+4: Major chord
+
+5: Minor chord
+
+6: Major 7th chord
+
+7: Dominant 7th chord
+
+8: Minor 7th chord
+
+9: Diminished chord
+
+10: Minor 7th chord
+
+11 or 12: Single note root of chord
 
 ## Hardware details
 Below is a block diagram of the hardware of the Gravitone. 
 
-<img src="images/block-diagram.png"/>
+<img src="images/block-diagram.png" width="800"/>
 
 
 ## Library architecture and driver design
-This section outlines the design of the library and the how to create modes and use the **GravitoneHardware** driver to access buttons and IMU data from the Gravitone's sensors.
+This section outlines the design of the library and the how to create modes and use the **GravitoneHardware** driver to access buttons and IMU data from the Gravitone's sensors. The purpose of the the **GravitoneHardware** driver is to abstract away all of the details of this block diagram and give the end user and easy way to access device functionality. 
 
-The purpose of the the **GravitoneHardware** driver is to abstract away all of the details of this block diagram and give the end user and easy way to access device functionality.
+Documentation of this and other libary classes including Modes and OutputModes is available at [https://movetones.github.io/Gravitone_ArduinoLibrary/](https://movetones.github.io/Gravitone_ArduinoLibrary/).
 
 
 #### The Teensy Audio Library
