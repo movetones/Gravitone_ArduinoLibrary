@@ -2,12 +2,12 @@
 
 ModeXylotar::ModeXylotar()
 {
-  idleThresh = 1.5;
-  trigThresh = 3.0;
-  playChord = false;
+  idleThresh = 1;
+  trigThresh = 2.1;
+  playChord = true;
   lastSampleTime = 0;
   lastPowerValue = 0;
-  scale = new gs_Scale(GS_SCALE_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 2);
+  scale = new gs_Scale(GS_SCALE_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 3);
   chord = new gs_Chord(GS_MAJ_CHORD_PATTERN, gs_Notes[NOTE_G.pos]);
 
   sine1.begin(0.8, 440, WAVEFORM_SAWTOOTH);

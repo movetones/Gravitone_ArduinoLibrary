@@ -32,7 +32,7 @@ ScaleMode::ScaleMode() {
   continuous = false;
   vibrato1 = false;
   vibrato2 = false;
-  scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 1);
+  scale = new gs_Scale(GS_SCALE_PENT_MAJOR_PATTERN, gs_Notes[NOTE_G.pos], 3);
   //Serial.println("created scale");
   fade1.fadeOut(200);
   fade2.fadeOut(200);
@@ -170,8 +170,8 @@ void ScaleMode::onUpdateOrientation()
   //Serial.print(millis()); Serial.print(" "); Serial.print(yaw); Serial.print(" "); Serial.print(pitch); Serial.print(" "); Serial.println(roll);
 
   if( continuous ){
-    freq  = scale->unison.freq*pow(2,(float)(map(pitch, 165, 15, 0, 12))/12.0)*pow(2, octaveShift);
-    freq2 = scale->unison.freq*pow(2,(float)(map(roll, 15, 165, 0, 12))/12.0)*pow(2, octaveShift);
+    freq  = scale->unison.freq*pow(2,(float)(map(pitch, 165, 15, 0, 36))/12.0)*pow(2, octaveShift);
+    freq2 = scale->unison.freq*pow(2,(float)(map(roll, 15, 165, 0, 36))/12.0)*pow(2, octaveShift);
   }
 
   //else 
@@ -251,7 +251,7 @@ void ScaleMode::button11(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     scaleIndex = (scaleIndex + 1) % 12;
     delete scale;
-    scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
+    scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 3);
   }
 }
 
@@ -259,6 +259,6 @@ void ScaleMode::button12(butevent_t event) {
   if( event == BUTTON_PRESSED ){
     scaleTypeIndex = (scaleTypeIndex + 1) % GS_NUM_SCALE_PATTERNS;
     delete scale;
-    scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 1);
+    scale = new gs_Scale(gs_scalePatterns[scaleTypeIndex], gs_Notes[scaleIndex], 3);
   }
 }
