@@ -12,6 +12,7 @@
 #include <WaveMode.h>
 #include <ScaleMode.h>
 #include <ModeXylotar.h>
+#include <QuaternionOutputMode.h>
 
 Gravitone g;
 
@@ -30,10 +31,12 @@ void setup() {
   ScaleMode *scaleMode = new ScaleMode();
   WaveMode *waveMode = new WaveMode();
   ModeXylotar *xylotarMode = new ModeXylotar();
+  QuaternionOutputMode *quatOutput = new QuaternionOutputMode();
   
   g.addMode(scaleMode);
   g.addMode(waveMode);
   g.addMode(xylotarMode);
+  g.addMode(quatOutput);
   
   g.setActiveMode(0);
   
