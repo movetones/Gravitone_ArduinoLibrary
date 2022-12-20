@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['_7egravitoneoutputmode_0',['~GravitoneOutputMode',['../class_gravitone_output_mode.html#aff3d5b0af6485071188187b706a5abb2',1,'GravitoneOutputMode']]]
+  ['wake_0',['wake',['../class_gravitone_hardware.html#a5db805900f02f2d6537850d1f1f67d20',1,'GravitoneHardware']]],
+  ['wavemode_1',['WaveMode',['../class_wave_mode.html',1,'']]],
+  ['websocketdemomode_2',['WebsocketDemoMode',['../class_websocket_demo_mode.html',1,'']]]
 ];
